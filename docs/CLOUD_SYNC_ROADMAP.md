@@ -4,6 +4,20 @@ Status: proposal only. The current release is a TypeScript utility skeleton; it 
 not a complete Schema.org editor, desktop app, sync client, or cloud storage service.
 Nothing here deploys a backend, sends customer data, or changes another repository.
 
+This roadmap supports the local-first product direction in
+[PRODUCT_VISION.zh-TW.md](PRODUCT_VISION.zh-TW.md). It is intentionally optional:
+using or contributing to the MIT-licensed local tools never requires a cloud account,
+Google account, attribution link, or telemetry. An official multilingual landing page
+is **PLANNED** at `https://truelink-group.com/downloads/schema-tools/`; that landing page stays
+under TrueLink site ownership and is not implemented by this repository.
+
+Browser integration is tracked in the [extension blueprint](EXTENSION_INTEGRATION_PLAN.zh-TW.md).
+A read-only inspection on 2026-09-15 found that the existing website's `saveToCloud`
+calls `deploySchemaApi` before `saveSchemaOfficial`, including a public-asset write.
+That combined operation is **not a private draft storage API**. Do not connect an
+extension's background save/sync directly to it. No production request was made;
+this finding is source evidence, not a runtime or account-data audit.
+
 ## Product recommendation
 
 1. **Local-first editor:** import, edit, validate and export JSON-LD without an account.
@@ -40,6 +54,14 @@ For a web app, use an approved existing authentication flow. If a native/desktop
 client is later selected, use the system browser and a standards-compliant public
 client flow (authorization code + PKCE where supported); do not invent a shared
 client secret or assume the existing auth provider already exposes the required flow.
+
+For an optional Google-linked account, use Google only through the reviewed TrueLink
+account-linking flow: a registered callback, one-time state, nonce where applicable,
+authorization code and PKCE when supported. Do not request Drive, Gmail, or other
+Google data scopes merely to store a Schema document. The backend must verify the
+actual session/token and derive the owner; an email or owner ID supplied by the client
+is not authority. Account disconnect/revocation must stop cloud API access while
+leaving unsynced local drafts available for export.
 
 ## Data and API design to decide before implementation
 
