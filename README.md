@@ -29,6 +29,23 @@ pnpm pack --pack-destination artifacts
 
 This is a developer library, not yet a graphical Schema.org editor or desktop installer.
 
+## Community and product direction
+
+Contributions are welcome under this repository's MIT license. You do **not** need a
+TrueLink account, cloud account, attribution link, or telemetry opt-in to use,
+contribute to, fork, or self-host the local tools. See
+[CONTRIBUTING.md](CONTRIBUTING.md) and the [product vision (繁體中文)](docs/PRODUCT_VISION.zh-TW.md).
+
+The long-term direction is a local-first Schema document editor, optional
+Google-linked TrueLink private cloud storage, and separately confirmed public
+snapshots. These are plans, not current product capabilities. The design work is
+tracked in [PR #1](https://github.com/Johnny050033/truelink-schema-web-tools/pull/1);
+community discussion and proposed work belong in [GitHub Issues](https://github.com/Johnny050033/truelink-schema-web-tools/issues).
+
+An official multilingual download and documentation landing page is **PLANNED** at
+`https://truelink-group.com/schema-tools/`. It remains owned by the TrueLink site
+project and is not delivered by this repository or an extension store today.
+
 ## Object schema validation
 
 ```ts
