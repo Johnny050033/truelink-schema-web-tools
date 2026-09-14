@@ -1,0 +1,27 @@
+{
+  "name": "truelink-schema-web-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Strict object schema validation and isolated static web embeds.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": { "node": ">=22.13.0" },
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "src", "docs", "README.md", "LICENSE", "SECURITY.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke:build": "node test/build-smoke.mjs",
+    "check": "pnpm typecheck && pnpm test && pnpm build && pnpm smoke:build"
+  },
+  "dependencies": { "css-tree": "3.2.1", "parse5": "8.0.1" },
+  "devDependencies": {
+    "@types/css-tree": "3.2.0",
+    "@types/node": "22.20.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}
