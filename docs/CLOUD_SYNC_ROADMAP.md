@@ -8,7 +8,7 @@ This roadmap supports the local-first product direction in
 [PRODUCT_VISION.zh-TW.md](PRODUCT_VISION.zh-TW.md). It is intentionally optional:
 using or contributing to the MIT-licensed local tools never requires a cloud account,
 Google account, attribution link, or telemetry. An official multilingual landing page
-is **PLANNED** at `https://truelink-group.com/schema-tools/`; that landing page stays
+is **PLANNED** at `https://truelink-group.com/downloads/schema-tools/`; that landing page stays
 under TrueLink site ownership and is not implemented by this repository.
 
 Browser integration is tracked in the [extension blueprint](EXTENSION_INTEGRATION_PLAN.zh-TW.md).

@@ -43,7 +43,7 @@ tracked in [PR #1](https://github.com/Johnny050033/truelink-schema-web-tools/pul
 community discussion and proposed work belong in [GitHub Issues](https://github.com/Johnny050033/truelink-schema-web-tools/issues).
 
 An official multilingual download and documentation landing page is **PLANNED** at
-`https://truelink-group.com/schema-tools/`. It remains owned by the TrueLink site
+`https://truelink-group.com/downloads/schema-tools/`. It remains owned by the TrueLink site
 project and is not delivered by this repository or an extension store today.
 
 ## Object schema validation
