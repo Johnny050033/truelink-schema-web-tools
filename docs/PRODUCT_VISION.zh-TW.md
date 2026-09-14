@@ -35,7 +35,7 @@ client secret、App Check debug token 或長期憑證。詳細安全契約見
 ## 發布與官方入口
 
 官方、可多語系的說明與下載入口建議為
-`https://truelink-group.com/schema-tools/`（**PLANNED**）。該頁屬 TrueLink 主站
+`https://truelink-group.com/downloads/schema-tools/`（**PLANNED**）。該頁屬 TrueLink 主站
 工作範圍；本 repo 不會自行發布、部署或宣稱它已上線。未來 landing page 應清楚
 分列本機免費核心、可選帳號／雲端、資料保留與刪除、各平台實際支援範圍，以及
 正式下載／商店連結的驗證時間。

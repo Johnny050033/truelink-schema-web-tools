@@ -3,6 +3,8 @@
 Thank you for helping improve `truelink-schema-web-tools`. This is an MIT-licensed,
 local-first project: contribution, local use, forks, and self-hosting do not require
 a TrueLink account, Google account, attribution link, telemetry, or cloud sync.
+MIT does still require preservation of applicable copyright and license notices; that
+legal notice is different from requiring a public attribution link.
 
 ## Scope and safe contributions
 
