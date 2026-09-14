@@ -4,6 +4,13 @@ Status: proposal only. The current release is a TypeScript utility skeleton; it 
 not a complete Schema.org editor, desktop app, sync client, or cloud storage service.
 Nothing here deploys a backend, sends customer data, or changes another repository.
 
+Browser integration is tracked in the [extension blueprint](EXTENSION_INTEGRATION_PLAN.zh-TW.md).
+A read-only inspection on 2026-09-15 found that the existing website's `saveToCloud`
+calls `deploySchemaApi` before `saveSchemaOfficial`, including a public-asset write.
+That combined operation is **not a private draft storage API**. Do not connect an
+extension's background save/sync directly to it. No production request was made;
+this finding is source evidence, not a runtime or account-data audit.
+
 ## Product recommendation
 
 1. **Local-first editor:** import, edit, validate and export JSON-LD without an account.

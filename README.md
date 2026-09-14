@@ -64,6 +64,21 @@ This repository currently makes **no network requests to a storage API** and doe
 not contain server credentials. No storage service or upload endpoint is implemented.
 See the [cloud sync roadmap](docs/CLOUD_SYNC_ROADMAP.md) for boundaries and acceptance.
 
+## Browser extension integration (design phase)
+
+The planned extension combines local website identity / structured-data inspection
+with management of the user's own Schema documents. The existing TrueLink Trust
+Check extension has been inspected read-only; it has **not** been copied, migrated,
+or released from this repository. No extension ZIP, store submission, or cloud
+integration is available here yet. The original SaaS repository remains unchanged.
+
+- [Integration blueprint and source findings (繁體中文)](docs/EXTENSION_INTEGRATION_PLAN.zh-TW.md)
+- [Editor / account UX specification (繁體中文)](docs/EXTENSION_UX_SPEC.zh-TW.md)
+- [Chrome, Edge, Firefox and Safari release checklist (繁體中文)](docs/EXTENSION_STORE_MATRIX.zh-TW.md)
+
+Important: the existing website's save-to-cloud flow also deploys public Schema
+assets. A future private draft sync adapter must not reuse that combined operation.
+
 ## Safe static embed profile
 
 ```ts
