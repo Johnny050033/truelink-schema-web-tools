@@ -92,7 +92,7 @@ session 或協作者不必重讀對話就能接手。
 | P0 | 確認 Pages 部署 | 合併後在 Actions → Pages 確認 `deploy` 成功，打開線上試用版 |
 | P1 | 母語審閱 | 追蹤 #3–#6；審閱完成的語言改為 `reviewed` |
 | P1 | SaaS 的圖示 | TL 圖示集缺 9 個（plus、x、check、chevrons、arrows、more、menu、cloud），部署 `/studio/` 前要補齊 |
-| P1 | CDN 快取時間 | 目前 24 小時並依 Referer 區分；建議 1 小時，待擁有者決定（成本考量） |
+| P1 | 託管腳本快取時間 | 建議縮短，讓撤銷與更新更快生效；實際數值待擁有者決定（成本考量） |
 | P2 | 發布到 npm | 套件目前是 `private: true`；決定後再發布 `truelink-schema-document` 與 `truelink-schema-cloud` |
 | P2 | 更多瀏覽器 | Safari、Firefox、實機與螢幕報讀器尚未驗證 |
 
@@ -121,3 +121,30 @@ node apps/web/scripts/qa-locales.mjs                # 需要 Playwright；截圖
 - 同意在 SaaS repo 開分支修安全性問題並建草稿後端、host bridge、`/studio/`，Studio 網址為 `app.truelink-group.com/studio/`。
 - 要 GitHub 曝光套件與 Pages 展示版，並支援多國語言，英文優先。
 - 中國大陸市場先放棄；授權操作 GitHub；在額度用完前把紀錄寫回 repo 與 PR。
+
+## 9. 認證 Schema API（KYC）：整合與建議（2026-09-24 追加）
+
+**已整合（開源端）**：
+- 共用核心 `verification.ts`：網域規則與 TrueLink 平台現行規則一致（網域本身＋子網域、忽略 `www.`、最多 12 個）。
+  另外會把不合法的輸入一律視為不符合。也提供公開端點產生函式，並有攻擊案例測試。
+- 雲端協定新增選用方法：`verification.get`、`verification.startUrl`（KYC 頁必須同源）、`apiKey.issue`、`apiKey.revoke`，
+  以及 `verification` 變更通知。參考 host 定義了「金鑰只顯示一次、重送請求不會再次揭露、KYC 或會員失效只暫停不撤銷」。
+- Studio「帳號與同步」新增「認證 Schema API」區塊（7 種語言）：
+  - 在 TrueLink 上已登入時：顯示狀態、認證網域、嵌入碼，並可管理金鑰。
+  - 其他地方：顯示說明與前往 KYC 的入口。
+  - 編輯器的程式碼面板也有說明連結。
+- 公開說明：`docs/VERIFIED_SCHEMA_API.md`（英文）、`docs/VERIFIED_SCHEMA_API.zh-TW.md`，README 導流到主站註冊。
+
+**SaaS 端待做**（需要 SaaS 權限）：
+- host 頁實作上述四個方法，接到平台既有的金鑰建立／更換、KYC 狀態、會員狀態與認證網域清單。
+- KYC 狀態改變時呼叫 `notifyChanged('verification')`。
+- 讓平台改用共用核心的網域規則（CommonJS bundle），網域判斷只保留一份。
+
+**建議**：
+1. **網域所有權驗證**：綁定網域時要求 DNS TXT 或 meta 標籤驗證（類似 Google Search Console），讓「認證官網」的主張有技術證據。
+2. **品牌警示儀表板**：把被拒絕的請求紀錄（資料被複製到哪些網域）顯示給品牌，並提供 email 通知。這是很強的賣點：「有人盜用你的資料時我們會通知你」。
+3. **伺服器端範例**：提供 WordPress、PHP、Next.js、Cloudflare Worker 的金鑰 API 範例，讓不執行 JavaScript 的 AI 爬蟲也讀得到。可放在公開 repo 吸引開發者。
+4. **在 JSON-LD 放查證連結**：在 Schema 中加入指向 `cert-status` 的 `subjectOf` 或 `identifier`，讓爬蟲不必執行 JavaScript 就能交叉查證。
+5. **Google 一鍵登入**：TrueLink 登入頁支援 `?provider=google` 提示，Studio 就能提供「以 Google 繼續」按鈕；登入仍在 TrueLink 網域完成。
+6. **縮短託管腳本的快取時間**：讓撤銷與更新更快生效（實際數值與成本由擁有者評估）。
+7. **AI 業者使用的查證 SDK**：以開源小套件包裝 `cert-status` 與 `verified-entities`，方便 AI 或爬蟲開發者採用，擴大 TrueLink 信任網路。

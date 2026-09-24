@@ -102,6 +102,21 @@ The core exports `CORE_VERSION`, kept equal to its package version by a test.
   edits. Conflicts are always the user's choice: keep this device, use the cloud copy or
   keep both.
 
+## Verified Schema (KYC-bound delivery)
+
+After KYC, the TrueLink platform serves a brand's schema only to its verified official
+domains. There are two channels: a hosted script, or a keyed server-side API that requires
+active KYC and membership. Copies on other sites are refused and reported, and anyone can
+check a domain through public endpoints.
+
+- The shared core holds the domain rules and endpoint builders (`isAllowedHost`,
+  `normalizeDomain`, `certStatusUrl`, `hostedSchemaEmbed`), so the platform and every tool
+  judge domains the same way.
+- The Studio shows status and manages API keys through the host bridge. Identity documents
+  go only to TrueLink's KYC page.
+
+See [VERIFIED_SCHEMA_API.md](VERIFIED_SCHEMA_API.md).
+
 ## Cloud drafts (optional)
 
 Enabled only when the Studio is served by TrueLink with `VITE_TRUELINK_HOST_URL`

@@ -12,7 +12,7 @@ import {
   type SchemaTemplate,
   type Severity,
 } from 'truelink-schema-document';
-import { VALIDATORS } from '../../config';
+import { COMMUNITY_LINKS, forLocale, VALIDATORS } from '../../config';
 import { CodeBlock } from '../../components/CodeBlock';
 import { Icon, type IconName } from '../../components/Icon';
 import { Button, ExternalLink, LinkButton, ScoreRing } from '../../components/ui';
@@ -193,7 +193,7 @@ export function AuditPanel({ audit, onFocusField }: { audit: AuditResult; onFocu
 }
 
 export function CodePanel({ template, data, onCopy, onDownloadJson, onDownloadHtml }: { template: SchemaTemplate; data: JsonObject; onCopy: () => void; onDownloadJson: () => void; onDownloadHtml: () => void }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const json = useMemo(() => toJsonLdJson(buildOutput(data, template)), [data, template]);
   return (
     <div className="code-panel">
@@ -225,6 +225,13 @@ export function CodePanel({ template, data, onCopy, onDownloadJson, onDownloadHt
         <div>
           <p className="cdn-title">{t('code.cdnTitle')}</p>
           <p>{t('code.cdnBody')}</p>
+          <p className="cdn-verified">
+            <Icon name="shield" size={14} />
+            <span>
+              <strong>{t('code.verified.title')}</strong> {t('code.verified.body')}{' '}
+              <ExternalLink href={forLocale(COMMUNITY_LINKS.verifiedDocs, locale)}>{t('code.verified.link')}</ExternalLink>
+            </span>
+          </p>
         </div>
         <LinkButton variant="accent" size="sm" href={hrefFor({ name: 'account' })}>
           {t('code.cdnCta')}

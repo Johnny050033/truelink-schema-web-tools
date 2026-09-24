@@ -2786,3 +2786,140 @@ button.gap-chip:hover {
     grid-column: 1;
   }
 }
+
+/* ---------- Verified Schema API ---------- */
+.verified-card {
+  display: grid;
+  gap: var(--space-4);
+  border-left: 4px solid var(--tl-brand-green, #2ea572);
+}
+
+.verified-head {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.verified-head h2 {
+  font-size: var(--fs-xl);
+}
+
+.verified-lead {
+  margin-top: 2px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.verified-steps {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.4em;
+  color: var(--text-2);
+  list-style: decimal;
+}
+
+.verified-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.verified-note,
+.verified-muted {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+}
+
+.verified-status {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.verified-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.verified-row dt {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.verified-row dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.verified-domains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.verified-domains code {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  font-size: var(--fs-sm);
+}
+
+.verified-block {
+  display: grid;
+  gap: 8px;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.verified-block h3 {
+  font-size: var(--fs-lg);
+}
+
+.verified-block > .btn {
+  justify-self: start;
+}
+
+.verified-code {
+  max-height: none;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.verified-key-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.cdn-verified {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin-top: 6px;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+
+.cdn-verified > .icon,
+.cdn-verified > svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+
+@media (max-width: 600px) {
+  .verified-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

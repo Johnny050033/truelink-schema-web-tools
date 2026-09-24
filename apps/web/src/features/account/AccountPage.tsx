@@ -6,6 +6,7 @@ import { useI18n, type MessageKey } from '../../i18n';
 import { cloudSignal } from '../../lib/cloud';
 import { useSignal } from '../../lib/signals';
 import { CloudPanel, useCloudStatusLines } from './CloudPanel';
+import { VerifiedApiPanel } from './VerifiedApiPanel';
 
 /** True when the Studio is served with a TrueLink host bridge (cloud drafts available). */
 const CLOUD_ENABLED = CLOUD_HOST_PATH !== undefined;
@@ -37,6 +38,7 @@ const COMPARISON: readonly (readonly [MessageKey, Availability, Availability])[]
   ['account.compare.deploy', 'no', 'platform'],
   ['account.compare.geo', 'no', 'platform'],
   ['account.compare.sync', 'no', CLOUD_ENABLED ? 'yes' : 'planned'],
+  ['account.compare.verified', 'no', 'platform'],
 ];
 
 function AvailabilityCell({ value }: { value: Availability }) {
@@ -136,6 +138,8 @@ export function AccountPage() {
       </section>
 
       {CLOUD_ENABLED ? <CloudPanel /> : null}
+
+      <VerifiedApiPanel />
 
       <section className="section" aria-labelledby="benefits-title">
         <h2 id="benefits-title" className="sr-only">

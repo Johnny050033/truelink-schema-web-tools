@@ -67,9 +67,32 @@ tool can guarantee rankings, rich results or AI citations.
   Security Policy, and data kept in your browser.
 - **Installable and offline:** a PWA for desktop and mobile.
 - **7 languages:** see [below](#languages).
+- **TrueLink Verified Schema API (KYC):** after identity verification, TrueLink serves your
+  complete schema only on your verified official domains. Phishing copies get nothing, and
+  anyone can check which site is really yours. [How it works →](docs/VERIFIED_SCHEMA_API.md)
 - **Optional TrueLink account:** cloud drafts across devices, hosted deployment and AI
   visibility tools on the [TrueLink platform](https://truelink-group.com/en/). Nothing
   uploads without an explicit click.
+
+## TrueLink Verified Schema API
+
+Anyone can copy JSON-LD onto a look-alike site, and crawlers can't tell which copy is genuine.
+TrueLink ties your structured data to a verified identity:
+
+1. **KYC:** verify your company, expertise or identity on TrueLink.
+2. **Bind your domains:** TrueLink serves your schema, from a one-line embed or a keyed
+   server-side API, only to your verified official domains. A copy elsewhere gets nothing,
+   and you are alerted.
+3. **Public verification:** crawlers, AI assistants and people can confirm that a domain is a
+   verified official site (`/api/public/cert-status`, `/api/public/verified-entities.jsonld`).
+
+The shared core implements the same domain rules as the platform (`isAllowedHost`,
+`certStatusUrl`, `hostedSchemaEmbed` …). Signed-in members manage KYC status, the embed line and
+API keys from Schema Studio. Identity documents go only to TrueLink's KYC page.
+
+**[Get verified on TrueLink →](https://truelink-group.com/)** ·
+[Technical overview](docs/VERIFIED_SCHEMA_API.md) ·
+[繁體中文說明](docs/VERIFIED_SCHEMA_API.zh-TW.md)
 
 ## Languages
 

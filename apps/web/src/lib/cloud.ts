@@ -7,8 +7,10 @@ import {
   type CloudErrorCode,
   type HostAccount,
   type HostClient,
+  type IssuedApiKey,
   type PublishedSchema,
   type PublishResult,
+  type VerificationStatus,
 } from 'truelink-schema-cloud';
 import { CORE_VERSION, LEGACY_MAIN_TEMPLATES } from 'truelink-schema-document';
 import { CLOUD_HOST_PATH } from '../config';
@@ -31,12 +33,16 @@ export type CloudState =
       readonly drafts: readonly CloudDraft[];
       readonly published: PublishedSchema | null;
       readonly canScore: boolean;
+      /** TrueLink Verified Schema status; null when this host does not offer it or it failed to load. */
+      readonly verification: VerificationStatus | null;
     };
 
 /** How the Studio reaches a TrueLink host; replaced in tests. */
 export interface CloudEnvironment {
   createClient(): HostClient;
   navigate(url: string): void;
+  /** Opens a TrueLink page (such as KYC) next to the Studio; falls back to navigating. */
+  openPage?(url: string): void;
   makeKey(): string;
   readonly storage: KeyValueStorage | null;
 }
@@ -64,6 +70,9 @@ function browserEnvironment(path: string): CloudEnvironment {
       };
     },
     navigate: (url) => window.location.assign(url),
+    openPage: (url) => {
+      window.open(url, '_blank', 'noopener');
+    },
     makeKey: () => crypto.randomUUID().replaceAll('-', ''),
     storage: browserStorage(),
   };
@@ -166,10 +175,12 @@ export async function refreshCloud(): Promise<void> {
       cloudSignal.set({ phase: 'signed-out' });
       return;
     }
-    const [drafts, published] = await Promise.all([client.listDrafts(), client.getPublished()]);
+    // Verification is loaded alongside but never blocks drafts: a failure only hides that panel.
+    const verification = client.supports('verification.get') ? client.getVerification().catch(() => null) : Promise.resolve(null);
+    const [drafts, published, status] = await Promise.all([client.listDrafts(), client.getPublished(), verification]);
     reconcileMeta(drafts);
     applyCloudUpdates(drafts);
-    cloudSignal.set({ phase: 'ready', account, drafts, published, canScore: client.supports('score') });
+    cloudSignal.set({ phase: 'ready', account, drafts, published, canScore: client.supports('score'), verification: status });
   } catch (error) {
     const code = errorCode(error);
     cloudSignal.set(code === 'signed-out' ? { phase: 'signed-out' } : { phase: 'unavailable', reason: code });
@@ -222,6 +233,31 @@ export async function signInToTrueLink(): Promise<void> {
   const url = await requireClient().signInUrl();
   getStore().flush();
   environment?.navigate(url);
+}
+
+/**
+ * Opens TrueLink's KYC page (same origin as the host). Identity documents are uploaded there,
+ * never through the Studio; the new status arrives as a "verification" change notice.
+ */
+export async function openKyc(): Promise<void> {
+  const url = await requireClient().verificationUrl();
+  getStore().flush();
+  if (environment?.openPage) environment.openPage(url);
+  else environment?.navigate(url);
+}
+
+/** Issues (or rotates) the keyed-API credential. The key is returned once and never stored here. */
+export async function issueApiKey(operation: 'provision' | 'rotate'): Promise<IssuedApiKey> {
+  const env = environment;
+  if (!env) throw new CloudError('unavailable', 'TrueLink is not connected.');
+  const issued = await requireClient().issueApiKey({ operation, idempotencyKey: env.makeKey(), confirmed: true });
+  await refreshCloud();
+  return issued;
+}
+
+export async function revokeApiKey(): Promise<void> {
+  await requireClient().revokeApiKey();
+  await refreshCloud();
 }
 
 /**

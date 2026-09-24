@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createHostClient, createLinkedTransports, createMemoryHost, serveHost, type MemoryHost } from 'truelink-schema-cloud';
 import { createRecord } from 'truelink-schema-document';
-import { hostPath } from '../src/config';
+import { COMMUNITY_LINKS, forLocale, hostPath } from '../src/config';
 import {
   cloudSignal,
   cloudUpdatesSignal,
@@ -9,6 +9,9 @@ import {
   connectCloud,
   deleteCloudDraft,
   downloadDraft,
+  issueApiKey,
+  openKyc,
+  revokeApiKey,
   publishDocuments,
   signInToTrueLink,
   syncMetaSignal,
@@ -285,5 +288,53 @@ describe('staying in step with TrueLink', () => {
     await connectCloud();
     expect(cloudSignal.get()).toEqual({ phase: 'outdated', required: '99.0.0' });
     await expect(uploadDocument('doc00000001')).rejects.toMatchObject({ code: 'unavailable' });
+  });
+});
+
+describe('Verified Schema', () => {
+  const verification = { kyc: 'approved' as const, membershipActive: true, verifiedDomains: ['example.com'], accountId: 'uid_synthetic', kycUrl: '/kyc/?next=%2Fstudio%2F' };
+
+  it('links Chinese interfaces to the Traditional Chinese guide and everyone else to the English one', () => {
+    expect(forLocale(COMMUNITY_LINKS.verifiedDocs, 'zh-TW')).toMatch(/\/docs\/VERIFIED_SCHEMA_API\.zh-TW\.md$/);
+    expect(forLocale(COMMUNITY_LINKS.verifiedDocs, 'zh-CN')).toMatch(/\/docs\/VERIFIED_SCHEMA_API\.zh-TW\.md$/);
+    for (const locale of ['en', 'ja', 'es', 'pt-BR', 'id'] as const) expect(forLocale(COMMUNITY_LINKS.verifiedDocs, locale)).toMatch(/\/docs\/VERIFIED_SCHEMA_API\.md$/);
+  });
+
+  it('loads the verification status with drafts, and leaves it null on hosts without it', async () => {
+    useHost();
+    await connectCloud();
+    expect(ready().verification).toBeNull();
+    useHost({ account: { displayName: 'Synthetic User' }, verification });
+    await connectCloud();
+    expect(ready().verification).toMatchObject({ kyc: 'approved', membershipActive: true, verifiedDomains: ['example.com'], apiKey: { state: 'none', masked: null } });
+  });
+
+  it('opens the KYC page on the host origin, never uploading documents itself', async () => {
+    useHost({ account: { displayName: 'Synthetic User' }, verification: { ...verification, kyc: 'none' } });
+    await connectCloud();
+    await openKyc();
+    expect(navigated).toEqual([`${ORIGIN}/kyc/?next=%2Fstudio%2F`]);
+  });
+
+  it('shows a new key once and keeps only its masked form', async () => {
+    useHost({ account: { displayName: 'Synthetic User' }, verification });
+    await connectCloud();
+    const issued = await issueApiKey('provision');
+    expect(issued.apiKey).toMatch(/^tl_[a-f0-9]{48}$/);
+    expect(ready().verification?.apiKey).toEqual({ state: 'active', masked: issued.masked });
+    expect(JSON.stringify(ready())).not.toContain(issued.apiKey);
+    expect([...storage.map.values()].join('')).not.toContain(issued.apiKey);
+    await revokeApiKey();
+    expect(ready().verification?.apiKey.state).toBe('revoked');
+  });
+
+  it('refreshes when TrueLink reports a verification change', async () => {
+    useHost({ account: { displayName: 'Synthetic User' }, verification: { ...verification, kyc: 'pending' } });
+    await connectCloud();
+    expect(ready().verification?.kyc).toBe('pending');
+    host.setVerification({ kyc: 'approved' });
+    servers[0]!.notifyChanged('verification');
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(ready().verification?.kyc).toBe('approved');
   });
 });

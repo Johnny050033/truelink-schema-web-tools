@@ -45,8 +45,24 @@ Schema Studio 依官方文件設計引導式表單，檢查時說明要改什麼
 - **隱私優先**：沒有追蹤或分析、不呼叫伺服器、嚴格的內容安全政策，資料留在瀏覽器。
 - **可安裝、可離線**：桌機與手機都能安裝成 App（PWA）。
 - **7 種語言**：見[下方](#語言)。
+- **TrueLink 認證 Schema API（KYC）**：通過身分認證後，TrueLink 只在你認證過的官方網域提供完整 Schema。
+  釣魚網站複製了也拿不到資料，任何人都能查證哪個才是真官網。[運作方式 →](docs/VERIFIED_SCHEMA_API.zh-TW.md)
 - **選用 TrueLink 帳號**：在 [TrueLink 平台](https://truelink-group.com/)使用跨裝置雲端草稿、
   代管部署與 AI 能見度工具。必須明確按下按鈕才會上傳。
+
+## TrueLink 認證 Schema API
+
+任何人都能把 JSON-LD 複製到仿冒網站，爬蟲分不出哪份才是真的。TrueLink 把結構化資料和已認證的身分綁在一起：
+
+1. **KYC**：在 TrueLink 認證你的企業、專家或個人身分。
+2. **綁定網域**：TrueLink 透過一行嵌入碼或伺服器端金鑰 API 提供你的 Schema，只提供給認證過的官方網域。
+   其他網站複製了也拿不到，你還會收到警示。
+3. **公開查證**：爬蟲、AI 助理與訪客都能確認某個網域是否為認證官網。
+
+共用核心實作與平台相同的網域規則。已登入的會員可以在 Schema Studio 查看 KYC 狀態、嵌入碼並管理 API 金鑰；
+身分文件只會上傳到 TrueLink 的 KYC 頁面。
+
+**[前往 TrueLink 認證 →](https://truelink-group.com/)** · [完整說明](docs/VERIFIED_SCHEMA_API.zh-TW.md)
 
 ## 語言
 

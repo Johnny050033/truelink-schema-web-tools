@@ -10,4 +10,5 @@ interface ImportMetaEnv {
   readonly VITE_TRUELINK_APP_URL?: string;
   /** Same-origin path of the TrueLink host bridge page, e.g. /studio/host.html (enables cloud drafts). */
   readonly VITE_TRUELINK_HOST_URL?: string;
+  readonly VITE_TRUELINK_KYC_URL?: string;
 }

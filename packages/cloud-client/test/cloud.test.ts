@@ -284,3 +284,101 @@ describe('keeping linked tools in step', () => {
     expect(compareVersions('0.3.0-beta.1', '0.3.0')).toBe(0);
   });
 });
+
+describe('Verified Schema (KYC and API key)', () => {
+  const account = { displayName: 'Synthetic Brand' };
+  const verified = { kyc: 'approved' as const, membershipActive: true, verifiedDomains: ['https://www.example.com/', 'shop.example.com'], accountId: 'uid_synthetic' };
+  let issued = 0;
+  const makeApiKey = () => `tl_${String((issued += 1)).padStart(48, 'a')}`;
+
+  it('is announced only by hosts that implement it', async () => {
+    const plain = connect();
+    await plain.client.ready();
+    expect(plain.client.supports('verification.get')).toBe(false);
+    expect((await rejection(plain.client.getVerification())).code).toBe('unavailable');
+    const full = connect({ account, verification: verified });
+    await full.client.ready();
+    for (const method of ['verification.get', 'verification.startUrl', 'apiKey.issue', 'apiKey.revoke'] as const) expect(full.client.supports(method)).toBe(true);
+  });
+
+  it('reports KYC state, normalized verified domains and never a key', async () => {
+    const { client } = connect({ account, verification: verified });
+    const status = await client.getVerification();
+    expect(status).toEqual({
+      kyc: 'approved',
+      membershipActive: true,
+      verifiedDomains: ['example.com', 'shop.example.com'],
+      hostedScriptUrl: null,
+      certificateUrl: 'https://app.truelink-group.com/api/public/cert-status?domain=example.com',
+      apiKey: { state: 'none', masked: null },
+    });
+  });
+
+  it('keeps the KYC page on the host origin', async () => {
+    const { client } = connect({ account, verification: { ...verified, kycUrl: '/kyc/?next=%2Fstudio%2F' } });
+    expect(await client.verificationUrl()).toBe(`${ORIGIN}/kyc/?next=%2Fstudio%2F`);
+    const hostile = connect({ account, verification: { ...verified, kycUrl: 'https://evil.example/kyc' } });
+    expect((await rejection(hostile.client.verificationUrl())).code).toBe('protocol');
+  });
+
+  it('issues a key only after KYC with an active membership, shows it once and rotates it', async () => {
+    const pending = connect({ account, verification: { ...verified, kyc: 'pending', makeApiKey } });
+    expect((await rejection(pending.client.issueApiKey({ operation: 'provision', idempotencyKey: key(), confirmed: true }))).code).toBe('forbidden');
+
+    const { client, host } = connect({ account, verification: { ...verified, makeApiKey } });
+    const first = await client.issueApiKey({ operation: 'provision', idempotencyKey: key(), confirmed: true });
+    expect(first.apiKey).toMatch(/^tl_[a-f0-9]{48}$/);
+    expect(first.masked).toBe(`tl_…${first.apiKey.slice(-4)}`);
+    const status = await client.getVerification();
+    expect(status.apiKey).toEqual({ state: 'active', masked: first.masked });
+    expect(JSON.stringify(status)).not.toContain(first.apiKey);
+
+    expect((await rejection(client.issueApiKey({ operation: 'provision', idempotencyKey: key(), confirmed: true }))).code).toBe('invalid');
+    const retryKey = key();
+    const second = await client.issueApiKey({ operation: 'rotate', idempotencyKey: retryKey, confirmed: true });
+    expect(second.apiKey).not.toBe(first.apiKey);
+    // A replayed request must not reveal the key again.
+    expect((await rejection(client.issueApiKey({ operation: 'rotate', idempotencyKey: retryKey, confirmed: true }))).code).toBe('conflict');
+
+    host.setVerification({ membershipActive: false });
+    expect((await client.getVerification()).apiKey.state).toBe('active');
+    expect((await rejection(client.issueApiKey({ operation: 'rotate', idempotencyKey: key(), confirmed: true }))).code).toBe('forbidden');
+
+    await client.revokeApiKey();
+    expect((await client.getVerification()).apiKey).toEqual({ state: 'revoked', masked: second.masked });
+  });
+
+  it('requires confirmation and rejects smuggled fields', async () => {
+    const { client } = connect({ account, verification: verified });
+    await client.ready();
+    const raw = client as unknown as { issueApiKey(input: unknown): Promise<unknown> };
+    expect((await rejection(raw.issueApiKey({ operation: 'provision', idempotencyKey: key() }))).code).toBe('invalid');
+    expect((await rejection(raw.issueApiKey({ operation: 'provision', idempotencyKey: key(), confirmed: true, targetUid: 'someone-else' }))).code).toBe('invalid');
+  });
+
+  it('rejects malformed status from a host', async () => {
+    const { parseVerification } = await import('../src/index.js');
+    const good = { kyc: 'approved', membershipActive: true, verifiedDomains: ['example.com'], hostedScriptUrl: null, certificateUrl: null, apiKey: { state: 'none', masked: null } };
+    expect(parseVerification(good).verifiedDomains).toEqual(['example.com']);
+    for (const bad of [
+      { ...good, kyc: 'maybe' },
+      { ...good, verifiedDomains: ['https://example.com/'] },
+      { ...good, verifiedDomains: ['evil .com'] },
+      { ...good, hostedScriptUrl: 'http://app.truelink-group.com/x.js' },
+      { ...good, certificateUrl: 'javascript:alert(1)' },
+      { ...good, apiKey: { state: 'active', masked: `tl_${'a'.repeat(48)}` } },
+    ]) {
+      expect(() => parseVerification(bad), JSON.stringify(bad)).toThrow(CloudError);
+    }
+  });
+
+  it('announces verification changes to open clients', async () => {
+    const { client, server } = connect({ account, verification: verified });
+    await client.ready();
+    const scopes: string[] = [];
+    client.onChange((scope) => scopes.push(scope));
+    server.notifyChanged('verification');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(scopes).toEqual(['verification']);
+  });
+});
