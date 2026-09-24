@@ -152,6 +152,8 @@ Pages, and `v*` tags publish release artifacts.
 Ideas, bug reports, templates and translations are all welcome:
 
 - Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+- Looking for a first task? Try the [good first issues](https://github.com/Johnny050033/truelink-schema-web-tools/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+  Native-speaker reviews of the Japanese, Spanish, Portuguese and Indonesian translations are especially welcome.
 - Or open an [issue](https://github.com/Johnny050033/truelink-schema-web-tools/issues/new/choose).
 - Report security problems privately ([SECURITY.md](SECURITY.md)).
 - Everyone participating agrees to the [Code of Conduct](CODE_OF_CONDUCT.md).

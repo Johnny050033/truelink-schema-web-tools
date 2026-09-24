@@ -98,6 +98,8 @@ pnpm check   # 所有工作區的型別檢查、翻譯檢查、測試與建置
 歡迎各種點子、問題回報、模板建議與翻譯：
 
 - 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)（英文）。
+- 想找入門任務？請看 [good first issues](https://github.com/Johnny050033/truelink-schema-web-tools/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)，
+  特別歡迎母語人士審閱日文、西班牙文、葡萄牙文與印尼文翻譯。
 - 或[開一個 issue](https://github.com/Johnny050033/truelink-schema-web-tools/issues/new/choose)。
 - 安全性問題請私下回報（[SECURITY.md](SECURITY.md)）。
 
