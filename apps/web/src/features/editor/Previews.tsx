@@ -13,6 +13,8 @@ import {
   templateFields,
   textOf,
   typeLabel,
+  localize,
+  sentenceSeparator,
   type AuditResult,
   type JsonObject,
   type Locale,
@@ -23,7 +25,7 @@ import { Icon } from '../../components/Icon';
 import { useI18n } from '../../i18n';
 
 function joinSentences(sentences: readonly string[], locale: Locale): string {
-  return sentences.join(locale === 'zh-TW' ? '' : ' ');
+  return sentences.join(sentenceSeparator(locale));
 }
 
 function truncate(text: string, max: number): string {
@@ -102,7 +104,8 @@ function priceText(price: string | undefined, currency: string | undefined, loca
 function optionLabel(template: SchemaTemplate, fieldId: string, value: string | undefined, locale: Locale): string | undefined {
   if (!value) return undefined;
   const field = templateFields(template).map((entry) => entry.field).find((item): item is ScalarField => item.id === fieldId && item.kind !== 'list');
-  return field?.options?.find((option) => option.value === value)?.label[locale] ?? value;
+  const option = field?.options?.find((item) => item.value === value);
+  return option ? localize(option.label, locale) : value;
 }
 
 export function SearchPreview({ template, data }: { template: SchemaTemplate; data: JsonObject }) {

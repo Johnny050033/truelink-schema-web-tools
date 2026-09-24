@@ -12,7 +12,8 @@ const BrandPage = lazy(() => import('./features/brand/BrandPage').then((module) 
 const TransferPage = lazy(() => import('./features/transfer/TransferPage').then((module) => ({ default: module.TransferPage })));
 const AccountPage = lazy(() => import('./features/account/AccountPage').then((module) => ({ default: module.AccountPage })));
 const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then((module) => ({ default: module.SettingsPage })));
-import { I18nProvider, translate, useI18n } from './i18n';
+import { LOCALE_INFO } from 'truelink-schema-document';
+import { I18nProvider, translate, useI18n, useReadyLocale } from './i18n';
 import type { ThemePreference } from './lib/persistence';
 import { useRoute, type Route } from './lib/router';
 import { cloudUpdatesSignal } from './lib/cloud';
@@ -82,12 +83,12 @@ function CloudUpdatesToast() {
 }
 
 export function App() {
-  const locale = useAppState((state) => state.prefs.locale);
+  const locale = useReadyLocale(useAppState((state) => state.prefs.locale));
   const theme = useAppState((state) => state.prefs.theme);
   const route = useRoute();
   useDocumentTheme(theme);
   useEffect(() => {
-    document.documentElement.lang = locale === 'zh-TW' ? 'zh-Hant-TW' : 'en';
+    document.documentElement.lang = LOCALE_INFO[locale].htmlLang;
     document.title = `${translate(locale, 'app.name')} · TrueLink — ${translate(locale, 'app.tagline')}`;
   }, [locale]);
 

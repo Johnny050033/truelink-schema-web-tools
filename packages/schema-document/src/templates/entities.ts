@@ -319,7 +319,7 @@ export const website: SchemaTemplate = {
     { from: ['url'], to: ['url'] },
     { from: ['name'], to: ['publisher', 'name'] },
   ],
-  starter: (locale) => ({ inLanguage: locale === 'zh-TW' ? 'zh-TW' : 'en' }),
+  starter: (locale) => ({ inLanguage: locale }),
   sections: [
     {
       id: 'basics',

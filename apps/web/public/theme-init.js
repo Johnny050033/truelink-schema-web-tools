@@ -6,6 +6,8 @@
 (function () {
   var root = document.documentElement;
   var theme = 'light';
+  // Same values as LOCALE_INFO[locale].htmlLang in truelink-schema-document (checked by a test).
+  var HTML_LANG = { en: 'en', 'zh-TW': 'zh-Hant-TW', 'zh-CN': 'zh-Hans-CN', ja: 'ja', es: 'es', 'pt-BR': 'pt-BR', id: 'id' };
   try {
     var prefs = JSON.parse(localStorage.getItem('truelink-schema-studio:v1:prefs') || 'null');
     if (prefs && (prefs.theme === 'light' || prefs.theme === 'dark' || prefs.theme === 'system')) {
@@ -14,7 +16,7 @@
       var shared = localStorage.getItem('tl_theme');
       if (shared === 'light' || shared === 'dark') theme = shared;
     }
-    if (prefs && prefs.locale === 'en') root.lang = 'en';
+    if (prefs && Object.prototype.hasOwnProperty.call(HTML_LANG, prefs.locale)) root.lang = HTML_LANG[prefs.locale];
   } catch (error) {
     /* storage unavailable: keep the light default */
   }

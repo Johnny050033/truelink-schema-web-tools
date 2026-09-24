@@ -1,4 +1,5 @@
 import { t } from './formats.js';
+import { fmt } from './i18n.js';
 import { cloneJson, defineValue, FORBIDDEN_KEYS, isJsonObject, typesOf } from './json.js';
 import { LIMITS, utf8Bytes } from './limits.js';
 import { templateForTypes } from './templates/index.js';
@@ -96,17 +97,17 @@ export interface ImportResult {
 
 const messages: Record<ImportIssueCode, LocalizedText> = {
   empty: t('沒有可匯入的內容。', 'There is nothing to import.'),
-  too_large: t(`內容超過 ${LIMITS.importBytes / 1024} KiB 上限，未匯入任何資料。`, `Input exceeds the ${LIMITS.importBytes / 1024} KiB limit; nothing was imported.`),
+  too_large: fmt('內容超過 {max} KiB 上限，未匯入任何資料。', 'Input exceeds the {max} KiB limit; nothing was imported.', { max: LIMITS.importBytes / 1024 }),
   invalid_json: t('不是有效的 JSON，請確認括號與引號是否完整。', 'This is not valid JSON; check brackets and quotes.'),
-  too_deep: t(`巢狀層級超過 ${LIMITS.maxDepth} 層。`, `Nesting exceeds ${LIMITS.maxDepth} levels.`),
-  too_many_nodes: t(`資料節點超過 ${LIMITS.maxNodes} 個。`, `More than ${LIMITS.maxNodes} values.`),
+  too_deep: fmt('巢狀層級超過 {max} 層。', 'Nesting exceeds {max} levels.', { max: LIMITS.maxDepth }),
+  too_many_nodes: fmt('資料節點超過 {max} 個。', 'More than {max} values.', { max: LIMITS.maxNodes }),
   forbidden_key: t('含有不允許的屬性名稱（__proto__、constructor 或 prototype）。', 'Contains a forbidden property name (__proto__, constructor or prototype).'),
-  string_too_long: t(`單一文字值超過 ${LIMITS.maxStringLength} 個字元。`, `A string exceeds ${LIMITS.maxStringLength} characters.`),
+  string_too_long: fmt('單一文字值超過 {max} 個字元。', 'A string exceeds {max} characters.', { max: LIMITS.maxStringLength }),
   not_json: t('含有非 JSON 資料。', 'Contains non-JSON data.'),
   no_nodes: t('沒有找到 JSON-LD 物件。', 'No JSON-LD objects were found.'),
   missing_type: t('有物件缺少 @type，已略過。', 'An object without @type was skipped.'),
-  too_many_blocks: t(`一次最多匯入 ${LIMITS.maxImportBlocks} 個項目，其餘未匯入。`, `At most ${LIMITS.maxImportBlocks} items are imported at once; the rest were skipped.`),
-  document_too_large: t(`有項目超過單份文件 ${LIMITS.documentBytes / 1024} KiB 上限，已略過。`, `An item exceeds the ${LIMITS.documentBytes / 1024} KiB document limit and was skipped.`),
+  too_many_blocks: fmt('一次最多匯入 {max} 個項目，其餘未匯入。', 'At most {max} items are imported at once; the rest were skipped.', { max: LIMITS.maxImportBlocks }),
+  document_too_large: fmt('有項目超過單份文件 {max} KiB 上限，已略過。', 'An item exceeds the {max} KiB document limit and was skipped.', { max: LIMITS.documentBytes / 1024 }),
   non_schema_context: t('@context 不是 https://schema.org；資料會原樣保留，但請確認來源。', '@context is not https://schema.org; data is kept as-is, but check its origin.'),
   legacy_store: t(
     '已辨識為 TrueLink 網頁工具儲存的資料：主要實體與常見問答會分成兩份文件；網域白名單是部署設定，不會匯入。',

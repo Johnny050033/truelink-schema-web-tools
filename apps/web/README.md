@@ -30,7 +30,7 @@ pnpm check        # 核心庫、schema-document 與 App 的型別檢查、測試
 | 我的 Schema | 搜尋、依類型篩選、完整度進度條；接近本機上限時提示 |
 | 匯入與匯出 | 貼上 JSON-LD 或整段 HTML（以 DOMParser 解析，內容不會執行），先預覽再匯入；合併成 `@graph`；備份與還原 |
 | 帳號與同步 | 註冊導流頁：目前狀態、TrueLink 權益、本機與帳號比較表、隱私承諾。部署在 TrueLink 網站並設定 host 時，另有「TrueLink 雲端草稿」：逐份上傳、已連結文件自動跟上雲端、衝突三選一、確認後發布到 TrueLink |
-| 設定 | 淺色（預設）／深色／跟隨系統、繁中／English、安裝 App、本機儲存用量、清除資料 |
+| 設定 | 淺色（預設）／深色／跟隨系統、7 種介面語言（Beta 標示與協助翻譯連結）、安裝 App、本機儲存用量、清除資料、意見回饋與 GitHub 連結 |
 
 範本包括：組織／品牌、地方商家、人物、網站、服務、產品、文章、FAQ、活動、麵包屑，
 以及保留任意類型的「其他類型」。
@@ -46,6 +46,20 @@ pnpm check        # 核心庫、schema-document 與 App 的型別檢查、測試
    和接近本機上限時放置情境化 CTA。
 5. **誠實**：規劃中的功能都標「規劃中」。前往 TrueLink 時網址不附帶任何資料，
    也不加推薦碼。
+
+## 多國語言
+
+介面支援 English、繁體中文、简体中文、日本語、Español、Português (Brasil)、Bahasa Indonesia，
+預設依瀏覽器語言選擇，找不到支援的語言時使用英文。
+
+- **原文**：英文與繁中，打包在主程式裡。
+- **其他語言**：第一次使用時才下載，service worker 會預先快取，離線也能切換。
+  已儲存的語言會在第一次畫面出現前載入，不會先閃過英文。
+- **介面文字**：`src/i18n/locales/<locale>.json`，以訊息 id 為 key，`en.json` 是原文。
+  模板、健檢與描述文字來自核心套件的 `locales/`。
+- **Beta**：AI 協助翻譯、尚未經母語人士審閱的語言顯示 Beta 標示，並附上「協助翻譯」連結。
+- **檢查**：`pnpm --filter truelink-schema-studio i18n:check` 檢查 slot、承諾用語與多餘的 key；
+  `node scripts/i18n.mjs --todo ja` 列出還沒翻譯的訊息。
 
 ## 設定 TrueLink 連結與品牌素材
 

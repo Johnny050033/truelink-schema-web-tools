@@ -150,7 +150,7 @@ GitHub Pages、自架）時，Studio 是純本機工具，所有雲端相關文�
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | TrueLink 網頁工具 `/tools/schema/` | 既有會員 | 主要轉換與付費功能 | 文件格式、匯入／匯出；之後改用共用輸出與檢查 | 已上線 | P0 |
 | 2 | Schema Studio PWA `/studio/` | 新訪客、中小企業 | 免註冊先體驗 → 註冊 → 雲端草稿 | 全部 | 本 repo 完成，待部署 | P0 |
-| 3 | GitHub 開源 repo ＋ GitHub Pages 展示 | 開發者、SEO 從業者 | 信任、反向連結、口碑 | 全部 | repo 已公開；Pages 待開 | P0 |
+| 3 | GitHub 開源 repo ＋ GitHub Pages 展示 | 全球開發者、SEO 從業者 | 信任、反向連結、口碑、回饋 | 全部 | repo 已公開；英文 README、貢獻指南、issue 表單、Pages workflow 已就緒，待合併後開啟 Pages | P0 |
 | 4 | 官網開源介紹頁 | 搜尋流量 | 說明與導流 | — | 已存在；需更新成 Studio 與雲端草稿的現況 | P0 |
 | 5 | TrueLink App（Capacitor 殼） | 行動會員 | 行動入口 | Studio 網頁 | App 殼已存在；需加入口 | P1 |
 | 6 | 瀏覽器擴充（Trust Check） | 行銷人員 | 「檢查這頁的 Schema → 在 Studio 修正」 | `truelink-schema-document`；Studio 可直接打包進側邊欄 | 擴充已存在 | P1 |
@@ -169,6 +169,19 @@ GitHub Pages、自架）時，Studio 是純本機工具，所有雲端相關文�
 - 原生商店只維持**一個** TrueLink App，把 Studio 當成其中一個入口，品牌才不會分散。App 內涉及
   付費方案的連結要遵守商店的數位商品規範。
 - 擴充、CLI、MCP 在帳號授權設計完成前只提供本機功能，不代使用者存取帳號資料。
+
+### 7.1 GitHub 曝光與回饋
+
+- **英文優先**：README 以英文為主並附繁中版。Schema／SEO 的國際社群多用英文，
+  在 GitHub 搜尋 `schema-org`、`json-ld`、`structured-data` 時才找得到。
+- **能馬上試用**：README 第一個連結是 GitHub Pages 線上版，不用安裝。
+- **容易回饋**：issue 表單分成問題、功能、模板、翻譯四種，提醒不要貼私人資料。
+  App 設定頁也有「回報問題／建議功能或模板／協助翻譯／在 GitHub 按星星」。
+- **容易參與**：翻譯審閱是門檻最低的貢獻。每種 Beta 語言都可以開一則 good first issue，邀請母語人士檢查。
+- **擁有者需在 GitHub 設定**：
+  - 描述、網站與 topics（`schema-org`、`json-ld`、`structured-data`、`seo`、`geo`、`pwa`、`local-first`、`i18n`、`hacktoberfest`）
+  - 上傳 social preview（`docs/assets/social-preview.png`）
+  - 開啟 Discussions、Private vulnerability reporting 與 Pages（來源選 GitHub Actions）
 
 ## 8. 每個入口都要一致的理念與品牌
 
@@ -192,6 +205,10 @@ GitHub Pages、自架）時，Studio 是純本機工具，所有雲端相關文�
 - 一處更新、全部同步：`changed` 即時通知、已連結文件自動跟上雲端、`minCoreVersion` 版本閘門、核心的瀏覽器建置、
   conformance 測資、CI 與版本發行 workflow。
 - Studio service worker 只處理自己的檔案。
+- 多國語言：English、繁中、简中、日本語、Español、Português (Brasil)、Bahasa Indonesia；英文優先、依瀏覽器語言自動選擇。
+  AI 協助翻譯的語言標示 Beta，並邀請母語人士審閱。所有文字都經翻譯目錄，檢查會確保 slot 正確、不出現保證用語。
+- GitHub 曝光套件：英文 README（含截圖與線上試用）、繁中 README、CONTRIBUTING（含翻譯流程）、行為準則、
+  issue 表單（問題、功能、模板、翻譯）、PR 範本、GitHub Pages 展示 workflow、social preview 圖、App 內回饋與 GitHub 連結。
 
 **第 2 階段：TrueLink SaaS 整合（待實作與部署）**
 

@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react';
 import { CloudError } from 'truelink-schema-cloud';
-import { displayName, getTemplate, typeLabel, type JsonObject } from 'truelink-schema-document';
+import { displayName, getTemplate, localize, typeLabel, type JsonObject, type Locale } from 'truelink-schema-document';
 import { Icon } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { Button, Chip, Dialog, Notice } from '../../components/ui';
@@ -49,11 +49,11 @@ function useErrorMessage() {
   };
 }
 
-function rowName(row: SyncRow, locale: 'zh-TW' | 'en', untitled: (type: string) => string): string {
+function rowName(row: SyncRow, locale: Locale, untitled: (type: string) => string): string {
   if (row.doc) return docTitle(row.doc, locale);
   const record = row.draft!.record;
   const template = getTemplate(record.templateId);
-  return record.title.trim() || displayName(template, record.data) || untitled(template.name[locale]);
+  return record.title.trim() || displayName(template, record.data) || untitled(localize(template.name, locale));
 }
 
 /** Explicit, per-document sync with TrueLink cloud drafts, plus separate publishing. */

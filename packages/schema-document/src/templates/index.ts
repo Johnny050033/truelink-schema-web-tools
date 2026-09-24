@@ -1,3 +1,4 @@
+import { localize } from '../i18n.js';
 import { getAt } from '../json.js';
 import type { FieldOption, JsonObject, Locale, ScalarField, SchemaTemplate, TemplateField, TemplateId, TemplateSection } from '../types.js';
 import { article, breadcrumb, event, faq, thing } from './content.js';
@@ -61,8 +62,8 @@ export function typeLabel(template: SchemaTemplate, node: JsonObject, locale: Lo
   const raw = node['@type'];
   const type = typeof raw === 'string' ? raw : Array.isArray(raw) && typeof raw[0] === 'string' ? raw[0] : template.type;
   const option = typeOption(template)?.find((item) => item.value === type);
-  if (option) return option.label[locale];
-  return type === template.type ? template.name[locale] : type;
+  if (option) return localize(option.label, locale);
+  return type === template.type ? localize(template.name, locale) : type;
 }
 
 export { article, breadcrumb, event, faq, localBusiness, organization, person, product, service, thing, website };

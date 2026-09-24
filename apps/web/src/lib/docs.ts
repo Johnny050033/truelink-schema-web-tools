@@ -1,11 +1,11 @@
-import { auditDocument, buildOutput, displayName, getTemplate, toJsonLdScript, type AuditResult, type JsonObject, type Locale } from 'truelink-schema-document';
+import { auditDocument, buildOutput, displayName, getTemplate, localize, toJsonLdScript, type AuditResult, type JsonObject, type Locale } from 'truelink-schema-document';
 import { translate } from '../i18n';
 import { dateStamp, downloadText, fileSlug } from './files';
 import { createBackup, type BrandProfile, type SchemaDoc } from './persistence';
 
 export function docTitle(doc: SchemaDoc, locale: Locale): string {
   const template = getTemplate(doc.templateId);
-  return doc.title.trim() || displayName(template, doc.data) || translate(locale, 'common.untitled', { type: template.name[locale] });
+  return doc.title.trim() || displayName(template, doc.data) || translate(locale, 'common.untitled', { type: localize(template.name, locale) });
 }
 
 const auditCache = new WeakMap<JsonObject, Map<string, AuditResult>>();

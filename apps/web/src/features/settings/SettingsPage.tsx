@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { utf8Bytes } from 'truelink-schema-document';
-import { APP_VERSION, LOCAL_LIMITS, TRUELINK_LINKS } from '../../config';
+import { LOCALE_INFO, LOCALES, utf8Bytes } from 'truelink-schema-document';
+import { APP_VERSION, COMMUNITY_LINKS, LOCAL_LIMITS, TRUELINK_LINKS } from '../../config';
 import { Icon, type IconName } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { Button, Dialog, ExternalLink, LinkButton, Notice, ProgressBar } from '../../components/ui';
@@ -9,6 +9,7 @@ import type { ThemePreference } from '../../lib/persistence';
 import { promptInstall, useInstallState } from '../../lib/pwa';
 import { hrefFor } from '../../lib/router';
 import { getStore, useAppState } from '../../lib/store';
+import { LanguageNote } from '../shell/LanguageMenu';
 
 const THEMES: readonly [ThemePreference, IconName][] = [
   ['system', 'monitor'],
@@ -46,19 +47,19 @@ export function SettingsPage() {
         </div>
         <h2 id="language-title">{t('settings.language')}</h2>
         <div className="choice-row" role="radiogroup" aria-labelledby="language-title">
-          {(
-            [
-              ['zh-TW', '繁體中文'],
-              ['en', 'English'],
-            ] as const
-          ).map(([value, label]) => (
-            <label key={value} className={`choice${prefs.locale === value ? ' is-on' : ''}`} lang={value === 'zh-TW' ? 'zh-Hant-TW' : 'en'}>
-              <input type="radio" name="locale" value={value} checked={prefs.locale === value} onChange={() => store.setPreferences({ locale: value })} />
-              <Icon name="languages" size={18} />
-              <span>{label}</span>
-            </label>
-          ))}
+          {LOCALES.map((value) => {
+            const info = LOCALE_INFO[value];
+            return (
+              <label key={value} className={`choice${prefs.locale === value ? ' is-on' : ''}`}>
+                <input type="radio" name="locale" value={value} checked={prefs.locale === value} onChange={() => store.setPreferences({ locale: value })} />
+                <Icon name="languages" size={18} />
+                <span lang={info.htmlLang}>{info.nativeName}</span>
+                {info.status === 'beta' ? <span className="chip lang-beta">{t('language.beta')}</span> : null}
+              </label>
+            );
+          })}
         </div>
+        <LanguageNote />
       </section>
 
       <section className="card settings-card" aria-labelledby="install-title">
@@ -106,6 +107,29 @@ export function SettingsPage() {
           <span>{t('settings.about.version', { version: APP_VERSION })}</span>
           <ExternalLink href={TRUELINK_LINKS.source}>{t('settings.about.source')}</ExternalLink>
         </p>
+      </section>
+
+      <section className="card settings-card" aria-labelledby="feedback-title">
+        <h2 id="feedback-title">{t('settings.feedback.title')}</h2>
+        <p>{t('settings.feedback.body')}</p>
+        <ul className="feedback-links">
+          <li>
+            <Icon name="alert-circle" size={18} />
+            <ExternalLink href={COMMUNITY_LINKS.bug}>{t('feedback.bug')}</ExternalLink>
+          </li>
+          <li>
+            <Icon name="layers" size={18} />
+            <ExternalLink href={COMMUNITY_LINKS.idea}>{t('feedback.idea')}</ExternalLink>
+          </li>
+          <li>
+            <Icon name="languages" size={18} />
+            <ExternalLink href={COMMUNITY_LINKS.translate}>{t('language.help')}</ExternalLink>
+          </li>
+          <li>
+            <Icon name="star" size={18} />
+            <ExternalLink href={COMMUNITY_LINKS.star}>{t('feedback.star')}</ExternalLink>
+          </li>
+        </ul>
       </section>
 
       <Dialog

@@ -3,10 +3,26 @@
  * TrueLink host can require a minimum so all linked tools move to a new core together.
  * Kept equal to package.json by a test.
  */
-export const CORE_VERSION = '0.2.0';
+export const CORE_VERSION = '0.3.0';
 
 export * from './types.js';
 export { LIMITS, utf8Bytes } from './limits.js';
+export {
+  fallbackLocale,
+  fill,
+  fmt,
+  hasCatalog,
+  isCjk,
+  isLocale,
+  isSourceLocale,
+  joinList,
+  lazyText,
+  LOCALE_INFO,
+  localize,
+  registerCatalog,
+  sentenceSeparator,
+} from './i18n.js';
+export type { Catalog, LocaleInfo } from './i18n.js';
 export {
   formatWallClock,
   isCountryCode,

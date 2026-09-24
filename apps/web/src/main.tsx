@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
-import { detectLocale } from './i18n';
+import { detectLocale, ensureLocale } from './i18n';
 import { browserStorage, readSharedTheme } from './lib/persistence';
 import { listenForInstallPrompt, registerServiceWorker } from './lib/pwa';
 import { installedSignal, updateSignal } from './lib/signals';
@@ -24,11 +24,15 @@ document.addEventListener('visibilitychange', () => {
 listenForInstallPrompt(() => installedSignal.set(installedSignal.get() + 1));
 registerServiceWorker((activate) => updateSignal.set(activate));
 
-const root = document.getElementById('root');
-if (root) {
-  createRoot(root).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
-}
+// A saved non-bundled language loads before the first render, so the page never flashes English.
+void ensureLocale(store.getState().prefs.locale)
+  .catch(() => undefined)
+  .then(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    createRoot(root).render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    );
+  });

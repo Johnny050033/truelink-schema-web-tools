@@ -4,7 +4,9 @@ import {
   buildOutput,
   createDocumentData,
   getTemplate,
+  localize,
   LOCALES,
+  SOURCE_LOCALES,
   templateFields,
   templateForTypes,
   TEMPLATES,
@@ -24,7 +26,8 @@ describe('template catalogue', () => {
     const ids = templateFields(template).map(({ field }) => field.id);
     expect(new Set(ids).size).toBe(ids.length);
     const copy = [template.name, template.summary, ...template.sections.flatMap((section) => [section.title, ...(section.description ? [section.description] : [])]), ...templateFields(template).flatMap(({ field }) => texts(field))];
-    for (const text of copy) for (const locale of LOCALES) expect(text[locale].trim().length).toBeGreaterThan(0);
+    for (const text of copy) for (const locale of SOURCE_LOCALES) expect(text[locale].trim().length).toBeGreaterThan(0);
+    for (const text of copy) for (const locale of LOCALES) expect(localize(text, locale).trim().length).toBeGreaterThan(0);
     for (const link of template.learnMore ?? []) expect(link.url.startsWith('https://')).toBe(true);
   });
 

@@ -1,10 +1,11 @@
-import { formatWallClock } from './formats.js';
+import { formatWallClock, t } from './formats.js';
+import { fill, isCjk, isSourceLocale, joinList, localize } from './i18n.js';
 import { getAt, isJsonObject, listAt, textOf, textsOf } from './json.js';
 import { buildOutput } from './output.js';
 import { classifyProfile, platformName, type PlatformId } from './platforms.js';
 import { countryOptions, dayOptions, languageOptions } from './templates/common.js';
 import { isFieldVisible, templateFields, typeLabel } from './templates/index.js';
-import type { JsonObject, Locale, ScalarField, SchemaTemplate } from './types.js';
+import type { FieldOption, JsonObject, Locale, ScalarField, SchemaTemplate } from './types.js';
 
 export interface EntityFact {
   readonly fieldId: string;
@@ -33,14 +34,33 @@ export interface EntityDescription {
 
 const SKIP_FACTS = new Set(['name', 'headline', 'description', 'sameAs', 'image', 'logo', '@id', '@type', 'alternateName']);
 
-function joinList(items: readonly string[], locale: Locale): string {
-  if (locale === 'zh-TW') return items.join('、');
-  if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+type Vars = Readonly<Record<string, string | number>>;
+
+/**
+ * One sentence (or sentence part) for a locale. Translators can reorder slots; optional parts
+ * are separate templates that may be empty. Slots named like `aLabel` carry an English article
+ * and are for English only; other languages use the plain `label`.
+ */
+function say(locale: Locale, zh: string, en: string, vars: Vars = {}): string {
+  return fill(localize(t(zh, en), locale), vars);
+}
+
+function part(locale: Locale, when: unknown, zh: string, en: string, vars: Vars = {}): string {
+  return when ? say(locale, zh, en, vars) : '';
 }
 
 function article(word: string): string {
   return /^[aeiou]/i.test(word) ? 'an' : 'a';
+}
+
+/** "an event", "a restaurant": used only by English templates. */
+function withArticle(word: string): string {
+  return `${article(word)} ${word}`;
+}
+
+/** Type labels read as common nouns inside sentences, so Latin-script translations lower-case them. */
+function labelInSentence(label: string, locale: Locale): string {
+  return isSourceLocale(locale) || isCjk(locale) ? label : label.toLocaleLowerCase(locale);
 }
 
 export function domainOf(url: string | undefined): string | undefined {
@@ -52,9 +72,14 @@ export function domainOf(url: string | undefined): string | undefined {
   }
 }
 
-function optionLabel(options: readonly { value: string; label: Record<Locale, string> }[], value: string | undefined, locale: Locale): string | undefined {
+function optionLabel(options: readonly FieldOption[], value: string | undefined, locale: Locale): string | undefined {
   if (!value) return undefined;
-  return options.find((option) => option.value === value)?.label[locale] ?? value;
+  const option = options.find((item) => item.value === value);
+  return option ? localize(option.label, locale) : value;
+}
+
+function withoutCode(label: string | undefined): string | undefined {
+  return label?.replace(/\s*[（(][^（()）]*[)）]$/, '');
 }
 
 export function formatAddress(node: JsonObject, path: readonly string[], locale: Locale, withStreet = true): string | undefined {
@@ -66,18 +91,19 @@ export function formatAddress(node: JsonObject, path: readonly string[], locale:
   const region = textOf(address['addressRegion']);
   const postal = withStreet ? textOf(address['postalCode']) : undefined;
   const countryCode = textOf(address['addressCountry']);
-  if (locale === 'zh-TW') {
+  // Chinese and Japanese addresses run from the largest unit to the smallest, without separators.
+  if (isCjk(locale)) {
     const text = [region, locality, street].filter(Boolean).join('');
-    return text || (countryCode ? optionLabel(countryOptions, countryCode, locale)?.replace(/（.*）$/, '') : undefined);
+    return text || (countryCode ? withoutCode(optionLabel(countryOptions, countryCode, locale)) : undefined);
   }
   const parts = [street, locality, [region, postal].filter(Boolean).join(' ') || undefined].filter(Boolean);
-  if (!withStreet && countryCode && parts.length === 0) return optionLabel(countryOptions, countryCode, locale)?.replace(/ \(.*\)$/, '');
+  if (!withStreet && countryCode && parts.length === 0) return withoutCode(optionLabel(countryOptions, countryCode, locale));
   return parts.length > 0 ? parts.join(', ') : undefined;
 }
 
 function dayLabel(value: string, locale: Locale): string {
   const plain = value.replace(/^https?:\/\/schema\.org\//, '');
-  return dayOptions.find((option) => option.value === plain)?.label[locale] ?? plain;
+  return optionLabel(dayOptions, plain, locale) ?? plain;
 }
 
 function dayRange(days: readonly string[], locale: Locale): string {
@@ -87,7 +113,7 @@ function dayRange(days: readonly string[], locale: Locale): string {
   if (consecutive) {
     const first = dayLabel(order[indexes[0]!]!, locale);
     const last = dayLabel(order[indexes[indexes.length - 1]!]!, locale);
-    return locale === 'zh-TW' ? `${first}至${last}` : `${first}–${last}`;
+    return say(locale, '{first}至{last}', '{first}–{last}', { first, last });
   }
   return joinList(days.map((day) => dayLabel(day, locale)), locale);
 }
@@ -100,8 +126,8 @@ export function summarizeHours(node: JsonObject, locale: Locale): string | undef
     const closes = textOf(slot['closes']);
     if (days.length === 0 || !opens || !closes) return undefined;
     return `${dayRange(days, locale)} ${opens}–${closes}`;
-  }).filter((part): part is string => part !== undefined);
-  return parts.length > 0 ? parts.join(locale === 'zh-TW' ? '；' : '; ') : undefined;
+  }).filter((item): item is string => item !== undefined);
+  return parts.length > 0 ? parts.join(localize(t('；', '; '), locale)) : undefined;
 }
 
 function name(node: JsonObject, template: SchemaTemplate): string | undefined {
@@ -112,93 +138,94 @@ function name(node: JsonObject, template: SchemaTemplate): string | undefined {
   return undefined;
 }
 
-function sentence(locale: Locale, zh: string | false | undefined, en: string | false | undefined): string | undefined {
-  const value = locale === 'zh-TW' ? zh : en;
-  return value ? value : undefined;
-}
-
-function entitySentences(template: SchemaTemplate, node: JsonObject, locale: Locale, label: string, displayName: string, domain: string | undefined, profiles: readonly EntityProfile[]): (string | undefined)[] {
+function entitySentences(template: SchemaTemplate, node: JsonObject, locale: Locale, label: string, displayName: string, domain: string | undefined, profiles: readonly EntityProfile[]): string[] {
   const text = (...path: string[]) => textOf(getAt(node, path));
-  const zh = locale === 'zh-TW';
-  const out: (string | undefined)[] = [];
+  const out: string[] = [];
   const alt = text('alternateName');
   const place = formatAddress(node, ['address'], locale, false);
-  const lower = label.toLowerCase();
-  out.push(zh
-    ? `${displayName}${alt ? `（${alt}）` : ''}是${place ? `位於${place}的` : ''}${label}。`
-    : `${displayName}${alt ? ` (${alt})` : ''} is ${article(lower)} ${lower}${place ? ` based in ${place}` : ''}.`);
-  const founded = text('foundingDate')?.slice(0, 4);
+  const vars = { name: displayName, alt: alt ?? '', place: place ?? '', label, aLabel: withArticle(label.toLowerCase()) };
+  if (alt && place) out.push(say(locale, '{name}（{alt}）是位於{place}的{label}。', '{name} ({alt}) is {aLabel} based in {place}.', vars));
+  else if (alt) out.push(say(locale, '{name}（{alt}）是{label}。', '{name} ({alt}) is {aLabel}.', vars));
+  else if (place) out.push(say(locale, '{name}是位於{place}的{label}。', '{name} is {aLabel} based in {place}.', vars));
+  else out.push(say(locale, '{name}是{label}。', '{name} is {aLabel}.', vars));
+
+  const year = text('foundingDate')?.slice(0, 4);
   const founder = text('founder', 'name');
-  if (founded || founder) {
-    out.push(sentence(locale,
-      `${founded ? `成立於 ${founded} 年` : ''}${founded && founder ? '，' : ''}${founder ? `創辦人為${founder}` : ''}。`,
-      `${founded ? `Founded in ${founded}` : 'Founded'}${founder ? ` by ${founder}` : ''}.`));
-  }
+  if (year && founder) out.push(say(locale, '成立於 {year} 年，創辦人為{founder}。', 'Founded in {year} by {founder}.', { year, founder }));
+  else if (year) out.push(say(locale, '成立於 {year} 年。', 'Founded in {year}.', { year }));
+  else if (founder) out.push(say(locale, '創辦人為{founder}。', 'Founded by {founder}.', { founder }));
+
   const expertise = textsOf(getAt(node, ['knowsAbout']));
-  if (expertise.length > 0) out.push(sentence(locale, `專長領域包括${joinList(expertise, locale)}。`, `Areas of expertise include ${joinList(expertise, locale)}.`));
+  if (expertise.length > 0) out.push(say(locale, '專長領域包括{list}。', 'Areas of expertise include {list}.', { list: joinList(expertise, locale) }));
   if (template.id === 'local-business') {
     const cuisine = textsOf(getAt(node, ['servesCuisine']));
-    if (cuisine.length > 0) out.push(sentence(locale, `供應${joinList(cuisine, locale)}。`, `Serves ${joinList(cuisine, locale)}.`));
+    if (cuisine.length > 0) out.push(say(locale, '供應{list}。', 'Serves {list}.', { list: joinList(cuisine, locale) }));
     const hours = summarizeHours(node, locale);
-    if (hours) out.push(sentence(locale, `營業時間：${hours}。`, `Open ${hours}.`));
+    if (hours) out.push(say(locale, '營業時間：{hours}。', 'Open {hours}.', { hours }));
     const price = text('priceRange');
-    if (price) out.push(sentence(locale, `價格區間約 ${price}。`, `Price range: ${price}.`));
+    if (price) out.push(say(locale, '價格區間約 {price}。', 'Price range: {price}.', { price }));
   }
   const phone = text('telephone');
-  if (phone) out.push(sentence(locale, `聯絡電話 ${phone}。`, `Phone: ${phone}.`));
-  if (domain || profiles.length > 0) {
-    const names = [...new Set(profiles.map((profile) => profile.name))];
-    out.push(zh
-      ? `${domain ? `官方網站為 ${domain}` : ''}${domain && names.length ? '，並' : ''}${names.length ? `在 ${joinList(names, locale)} 設有官方頁面` : ''}。`
-      : `${domain ? `Official website: ${domain}` : ''}${domain && names.length ? '; ' : ''}${names.length ? `official profiles on ${joinList(names, locale)}` : ''}.`);
-  }
+  if (phone) out.push(say(locale, '聯絡電話 {phone}。', 'Phone: {phone}.', { phone }));
+  const names = [...new Set(profiles.map((profile) => profile.name))];
+  const list = joinList(names, locale);
+  if (domain && names.length > 0) out.push(say(locale, '官方網站為 {domain}，並在 {list} 設有官方頁面。', 'Official website: {domain}; official profiles on {list}.', { domain, list }));
+  else if (domain) out.push(say(locale, '官方網站為 {domain}。', 'Official website: {domain}.', { domain }));
+  else if (names.length > 0) out.push(say(locale, '在 {list} 設有官方頁面。', 'Official profiles on {list}.', { list }));
   return out;
 }
 
 function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale, label: string, displayName: string | undefined, profiles: readonly EntityProfile[]): string[] {
   const text = (...path: string[]) => textOf(getAt(node, path));
-  const zh = locale === 'zh-TW';
   const domain = domainOf(text('url'));
-  const shown = displayName ?? (zh ? '此項目' : 'This item');
-  let out: (string | undefined)[] = [];
+  const shown = displayName ?? localize(t('此項目', 'This item'), locale);
+  const aLabel = withArticle(label.toLowerCase());
+  const inline = labelInSentence(label, locale);
+  const out: string[] = [];
   switch (template.id) {
     case 'organization':
     case 'local-business':
-      out = entitySentences(template, node, locale, label, shown, domain, profiles);
-      break;
+      return entitySentences(template, node, locale, inline, shown, domain, profiles);
     case 'person': {
       const job = text('jobTitle');
       const employer = text('worksFor', 'name');
-      out.push(zh
-        ? `${shown}是${employer ? `${employer}的` : ''}${job ?? '專業人士'}。`
-        : `${shown} is ${job ? `${article(job)} ${job}` : 'a professional'}${employer ? ` at ${employer}` : ''}.`);
+      const vars = { name: shown, job: job ?? '', employer: employer ?? '', aJob: job ? withArticle(job) : '' };
+      if (job && employer) out.push(say(locale, '{name}是{employer}的{job}。', '{name} is {aJob} at {employer}.', vars));
+      else if (job) out.push(say(locale, '{name}是{job}。', '{name} is {aJob}.', vars));
+      else if (employer) out.push(say(locale, '{name}是{employer}的專業人士。', '{name} is a professional at {employer}.', vars));
+      else out.push(say(locale, '{name}是專業人士。', '{name} is a professional.', vars));
       const expertise = textsOf(getAt(node, ['knowsAbout']));
-      if (expertise.length) out.push(sentence(locale, `專長領域包括${joinList(expertise, locale)}。`, `Areas of expertise include ${joinList(expertise, locale)}.`));
+      if (expertise.length) out.push(say(locale, '專長領域包括{list}。', 'Areas of expertise include {list}.', { list: joinList(expertise, locale) }));
       const alumni = text('alumniOf', 'name');
-      if (alumni) out.push(sentence(locale, `畢業於${alumni}。`, `Alumni of ${alumni}.`));
+      if (alumni) out.push(say(locale, '畢業於{alumni}。', 'Alumni of {alumni}.', { alumni }));
       const awards = textsOf(getAt(node, ['award']));
-      if (awards.length) out.push(sentence(locale, `曾獲${joinList(awards, locale)}。`, `Recognized with ${joinList(awards, locale)}.`));
-      if (profiles.length) out.push(sentence(locale, `可在 ${joinList([...new Set(profiles.map((item) => item.name))], locale)} 找到其官方頁面。`, `Official profiles: ${joinList([...new Set(profiles.map((item) => item.name))], locale)}.`));
+      if (awards.length) out.push(say(locale, '曾獲{list}。', 'Recognized with {list}.', { list: joinList(awards, locale) }));
+      if (profiles.length) out.push(say(locale, '可在 {list} 找到其官方頁面。', 'Official profiles: {list}.', { list: joinList([...new Set(profiles.map((item) => item.name))], locale) }));
       break;
     }
     case 'website': {
       const publisher = text('publisher', 'name');
-      const language = optionLabel(languageOptions, text('inLanguage'), locale)?.replace(/[（(].*[)）]$/, '').trim();
-      out.push(zh
-        ? `${shown}是${publisher ? `${publisher}的` : ''}官方網站${domain ? `（${domain}）` : ''}${language ? `，主要語言為${language}` : ''}。`
-        : `${shown} is the official website${publisher ? ` of ${publisher}` : ''}${domain ? ` (${domain})` : ''}${language ? `, primarily in ${language}` : ''}.`);
+      const language = withoutCode(optionLabel(languageOptions, text('inLanguage'), locale))?.trim();
+      out.push(say(locale, '{name}是{publisherPart}官方網站{domainPart}{languagePart}。', '{name} is the official website{publisherPart}{domainPart}{languagePart}.', {
+        name: shown,
+        publisherPart: part(locale, publisher, '{publisher}的', ' of {publisher}', { publisher: publisher ?? '' }),
+        domainPart: part(locale, domain, '（{domain}）', ' ({domain})', { domain: domain ?? '' }),
+        languagePart: part(locale, language, '，主要語言為{language}', ', primarily in {language}', { language: language ?? '' }),
+      }));
       break;
     }
     case 'service': {
       const provider = text('provider', 'name');
       const type = text('serviceType');
-      out.push(zh
-        ? `${provider ? `${provider}提供` : ''}「${shown}」${type ? `（${type}）` : ''}服務。`
-        : `${shown}${type ? ` (${type})` : ''} is a service${provider ? ` provided by ${provider}` : ''}.`);
+      out.push(say(locale, '{providerPart}「{name}」{typePart}服務。', '{name}{typePart} is a service{providerPart}.', {
+        name: shown,
+        providerPart: part(locale, provider, '{provider}提供', ' provided by {provider}', { provider: provider ?? '' }),
+        typePart: part(locale, type, '（{type}）', ' ({type})', { type: type ?? '' }),
+      }));
       const area = text('areaServed');
-      if (area) out.push(sentence(locale, `服務地區：${area}。`, `Area served: ${area}.`));
+      if (area) out.push(say(locale, '服務地區：{area}。', 'Area served: {area}.', { area }));
       const audience = text('audience', 'audienceType');
-      if (audience) out.push(sentence(locale, `主要服務對象為${audience}。`, `Designed for ${audience}.`));
+      if (audience) out.push(say(locale, '主要服務對象為{audience}。', 'Designed for {audience}.', { audience }));
       break;
     }
     case 'product': {
@@ -206,10 +233,17 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
       const price = text('offers', 'price');
       const currency = text('offers', 'priceCurrency');
       const availability = text('offers', 'availability');
-      const availabilityText = availability ? templateFields(template).map(({ field }) => field).find((item): item is ScalarField => item.id === 'offers.availability')?.options?.find((option) => option.value === availability)?.label[locale] : undefined;
-      out.push(zh
-        ? `「${shown}」是${brand ? `${brand}的` : ''}產品${price ? `，售價 ${currency ?? ''} ${price}`.replace('  ', ' ') : ''}${availabilityText ? `（${availabilityText}）` : ''}。`
-        : `${shown} is a product${brand ? ` by ${brand}` : ''}${price ? `, priced at ${currency ? `${currency} ` : ''}${price}` : ''}${availabilityText ? ` (${availabilityText.toLowerCase()})` : ''}.`);
+      const availabilityField = templateFields(template).map(({ field }) => field).find((item): item is ScalarField => item.id === 'offers.availability');
+      const availabilityOption = availability ? availabilityField?.options?.find((option) => option.value === availability) : undefined;
+      const availabilityText = availabilityOption ? localize(availabilityOption.label, locale) : undefined;
+      out.push(say(locale, '「{name}」是{brandPart}產品{pricePart}{availabilityPart}。', '{name} is a product{brandPart}{pricePart}{availabilityPart}.', {
+        name: shown,
+        brandPart: part(locale, brand, '{brand}的', ' by {brand}', { brand: brand ?? '' }),
+        pricePart: part(locale, price, '，售價 {amount}', ', priced at {amount}', { amount: currency ? `${currency} ${price}` : (price ?? '') }),
+        availabilityPart: part(locale, availabilityText, '（{availability}）', ' ({availability})', {
+          availability: locale === 'en' ? (availabilityText ?? '').toLowerCase() : (availabilityText ?? ''),
+        }),
+      }));
       break;
     }
     case 'article': {
@@ -217,19 +251,20 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
       const publisher = text('publisher', 'name');
       const published = text('datePublished');
       const date = published ? formatWallClock(published, locale).split(' ')[0] : undefined;
-      const lower = label.toLowerCase();
-      out.push(zh
-        ? `「${shown}」是一篇${author ? `由${author}撰寫、` : ''}${publisher ? `${publisher}發布的` : ''}${label}${date ? `，發布於 ${date}` : ''}。`
-        : `"${shown}" is ${article(lower)} ${lower}${author ? ` by ${author}` : ''}${publisher ? `, published by ${publisher}` : ''}${date ? ` on ${date}` : ''}.`);
+      out.push(say(locale, '「{name}」是一篇{authorPart}{publisherPart}{label}{datePart}。', '"{name}" is {aLabel}{authorPart}{publisherPart}{datePart}.', {
+        name: shown,
+        label: inline,
+        aLabel,
+        authorPart: part(locale, author, '由{author}撰寫、', ' by {author}', { author: author ?? '' }),
+        publisherPart: part(locale, publisher, '{publisher}發布的', ', published by {publisher}', { publisher: publisher ?? '' }),
+        datePart: part(locale, date, '，發布於 {date}', ' on {date}', { date: date ?? '' }),
+      }));
       break;
     }
     case 'faq': {
       const questions = listAt(node, ['mainEntity']).filter(isJsonObject).map((item) => textOf(item['name'])).filter((item): item is string => item !== undefined);
-      if (questions.length) {
-        out.push(zh
-          ? `此頁面提供 ${questions.length} 組官方問答，例如「${questions[0]}」。`
-          : `This page answers ${questions.length} question${questions.length === 1 ? '' : 's'}, such as "${questions[0]}".`);
-      }
+      if (questions.length === 1) out.push(say(locale, '此頁面提供 {count} 組官方問答，例如「{question}」。', 'This page answers {count} question, such as "{question}".', { count: 1, question: questions[0]! }));
+      else if (questions.length > 1) out.push(say(locale, '此頁面提供 {count} 組官方問答，例如「{question}」。', 'This page answers {count} questions, such as "{question}".', { count: questions.length, question: questions[0]! }));
       break;
     }
     case 'event': {
@@ -239,28 +274,38 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
       const venue = online ? undefined : text('location', 'name') ?? formatAddress(node, ['location', 'address'], locale, false);
       const organizer = text('organizer', 'name');
       const cancelled = text('eventStatus') === 'https://schema.org/EventCancelled';
+      const cancelledPart = part(locale, cancelled, '（已取消）', ' (cancelled)');
       if (!when && !venue && !online) {
-        const lower = label.toLowerCase();
-        out.push(zh ? `「${shown}」是一場${label}${organizer ? `，由${organizer}主辦` : ''}${cancelled ? '（已取消）' : ''}。` : `${shown} is ${article(lower)} ${lower}${organizer ? ` organized by ${organizer}` : ''}${cancelled ? ' (cancelled)' : ''}.`);
+        out.push(say(locale, '「{name}」是一場{label}{organizerPart}{cancelledPart}。', '{name} is {aLabel}{organizerPart}{cancelledPart}.', {
+          name: shown,
+          label: inline,
+          aLabel,
+          organizerPart: part(locale, organizer, '，由{organizer}主辦', ' organized by {organizer}', { organizer: organizer ?? '' }),
+          cancelledPart,
+        }));
         break;
       }
-      out.push(zh
-        ? `「${shown}」${when ? `將於 ${when} ` : ''}${venue ? `在${venue}` : online ? '以線上方式' : ''}舉行${organizer ? `，由${organizer}主辦` : ''}${cancelled ? '（已取消）' : ''}。`
-        : `${shown} takes place${when ? ` on ${when}` : ''}${venue ? ` at ${venue}` : online ? ' online' : ''}${organizer ? `, organized by ${organizer}` : ''}${cancelled ? ' (cancelled)' : ''}.`);
+      out.push(say(locale, '「{name}」{whenPart}{wherePart}舉行{organizerPart}{cancelledPart}。', '{name} takes place{whenPart}{wherePart}{organizerPart}{cancelledPart}.', {
+        name: shown,
+        whenPart: part(locale, when, '將於 {when} ', ' on {when}', { when: when ?? '' }),
+        wherePart: venue ? say(locale, '在{venue}', ' at {venue}', { venue }) : part(locale, online, '以線上方式', ' online'),
+        organizerPart: part(locale, organizer, '，由{organizer}主辦', ', organized by {organizer}', { organizer: organizer ?? '' }),
+        cancelledPart,
+      }));
       const price = text('offers', 'price');
-      if (price) out.push(sentence(locale, `票價 ${text('offers', 'priceCurrency') ?? ''} ${price}。`.replace('  ', ' '), `Tickets: ${text('offers', 'priceCurrency') ?? ''} ${price}.`.replace('  ', ' ')));
+      const currency = text('offers', 'priceCurrency');
+      if (price) out.push(say(locale, '票價 {amount}。', 'Tickets: {amount}.', { amount: currency ? `${currency} ${price}` : price }));
       break;
     }
     case 'breadcrumb': {
       const names = listAt(node, ['itemListElement']).filter(isJsonObject).map((item) => textOf(item['name'])).filter((item): item is string => item !== undefined);
-      if (names.length) out.push(sentence(locale, `此頁面在網站中的位置：${names.join(' › ')}。`, `Page location: ${names.join(' › ')}.`));
+      if (names.length) out.push(say(locale, '此頁面在網站中的位置：{path}。', 'Page location: {path}.', { path: names.join(' › ') }));
       break;
     }
-    default: {
-      out.push(zh ? `${shown}是 ${label} 類型的項目。` : `${shown} is ${article(label)} ${label}.`);
-    }
+    default:
+      out.push(say(locale, '{name}是 {label} 類型的項目。', '{name} is {aType}.', { name: shown, label: inline, aType: withArticle(label) }));
   }
-  return out.filter((item): item is string => item !== undefined);
+  return out;
 }
 
 function factValue(field: ScalarField, node: JsonObject, locale: Locale): string | undefined {
@@ -290,18 +335,18 @@ export function describeDocument(template: SchemaTemplate, data: JsonObject, loc
     if (field.kind === 'list') {
       if (field.id === 'openingHoursSpecification') {
         const hours = summarizeHours(node, locale);
-        if (hours) facts.push({ fieldId: field.id, label: field.label[locale], value: hours });
+        if (hours) facts.push({ fieldId: field.id, label: localize(field.label, locale), value: hours });
       }
       continue;
     }
     if (SKIP_FACTS.has(field.id) || !isFieldVisible(field, data)) continue;
     if (field.path[0] === 'address' || (field.path[0] === 'location' && field.path[1] === 'address')) continue;
     const value = factValue(field, node, locale);
-    if (value) facts.push({ fieldId: field.id, label: field.label[locale], value });
+    if (value) facts.push({ fieldId: field.id, label: localize(field.label, locale), value });
   }
   const addressPath = template.id === 'event' ? ['location', 'address'] : ['address'];
   const address = formatAddress(node, addressPath, locale);
-  if (address) facts.unshift({ fieldId: `${addressPath.join('.')}.streetAddress`, label: locale === 'zh-TW' ? '地址' : 'Address', value: address });
+  if (address) facts.unshift({ fieldId: `${addressPath.join('.')}.streetAddress`, label: localize(t('地址', 'Address'), locale), value: address });
   return {
     name: displayName,
     typeLabel: label,

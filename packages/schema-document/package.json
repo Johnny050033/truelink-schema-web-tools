@@ -1,6 +1,6 @@
 {
   "name": "truelink-schema-document",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Local-first Schema.org JSON-LD templates, bounded import, safe script serialization and advisory completeness checks.",
   "license": "MIT",
@@ -14,19 +14,23 @@
     },
     "./global": "./dist/bundles/truelink-schema-document.global.js",
     "./bundle": "./dist/bundles/truelink-schema-document.mjs",
-    "./conformance/legacy-store.json": "./conformance/legacy-store.json"
+    "./conformance/legacy-store.json": "./conformance/legacy-store.json",
+    "./locales/*.json": "./locales/*.json"
   },
   "files": [
     "dist",
     "src",
-    "conformance"
+    "conformance",
+    "locales"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && vite build --config vite.browser.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "smoke": "node test/browser-smoke.mjs",
-    "check": "pnpm typecheck && pnpm test && pnpm build && pnpm smoke"
+    "i18n": "node scripts/i18n.mjs",
+    "i18n:check": "node scripts/i18n.mjs --check",
+    "check": "pnpm typecheck && pnpm i18n:check && pnpm test && pnpm build && pnpm smoke"
   },
   "devDependencies": {
     "@types/node": "22.20.2",

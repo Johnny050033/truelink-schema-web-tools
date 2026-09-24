@@ -1,6 +1,6 @@
 {
   "description": "Conformance cases for exchanging data with the TrueLink web tool (tools/schema). Every consumer of truelink-schema-document should pass these after upgrading the core: fromLegacyStoreObj must pick the listed templates, and toLegacyStoreObj(fromLegacyStoreObj(x)) must return x's content with the normalised whitelist.",
-  "coreVersion": "0.2.0",
+  "coreVersion": "0.3.0",
   "cases": [
     {
       "name": "local business with FAQ and domain whitelist",

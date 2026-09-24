@@ -1,4 +1,5 @@
 import { t } from '../formats.js';
+import { fmt } from '../i18n.js';
 import { getAt, isJsonObject } from '../json.js';
 import type { FieldOption, Importance, JsonObject, LearnMoreLink, ScalarField } from '../types.js';
 
@@ -59,7 +60,7 @@ export const fields = {
       label: t('實體識別碼（@id）', 'Entity identifier (@id)'),
       importance: 'recommended',
       placeholder: t(`https://example.com/#${fragment}`, `https://example.com/#${fragment}`),
-      help: t('用一個固定網址代表同一個實體，讓不同頁面的結構化資料能互相連結。建議使用「官網網址#' + fragment + '」。', `A stable URL that identifies this entity across pages. A common pattern is "https://your-site/#${fragment}".`),
+      help: fmt('用一個固定網址代表同一個實體，讓不同頁面的結構化資料能互相連結。建議使用「官網網址#{fragment}」。', 'A stable URL that identifies this entity across pages. A common pattern is "https://your-site/#{fragment}".', { fragment }),
       why: t('固定的 @id 讓搜尋引擎與 AI 把各頁資料合併成同一個實體。', 'A stable @id lets engines merge data from many pages into one entity.'),
       suggest: idFromUrl(fragment),
     }, overrides);
@@ -203,6 +204,9 @@ export const languageOptions: readonly FieldOption[] = [
   { value: 'zh-CN', label: t('簡體中文（zh-CN）', 'Simplified Chinese (zh-CN)') },
   { value: 'en', label: t('英文（en）', 'English (en)') },
   { value: 'ja', label: t('日文（ja）', 'Japanese (ja)') },
+  { value: 'es', label: t('西班牙文（es）', 'Spanish (es)') },
+  { value: 'pt-BR', label: t('葡萄牙文－巴西（pt-BR）', 'Portuguese – Brazil (pt-BR)') },
+  { value: 'id', label: t('印尼文（id）', 'Indonesian (id)') },
   { value: 'ko', label: t('韓文（ko）', 'Korean (ko)') },
   { value: 'vi', label: t('越南文（vi）', 'Vietnamese (vi)') },
   { value: 'th', label: t('泰文（th）', 'Thai (th)') },
@@ -259,12 +263,12 @@ export function offerFields(prefix: readonly string[], importance: Importance): 
 }
 
 export function schemaOrgLink(type: string): LearnMoreLink {
-  return { label: t(`Schema.org：${type} 定義`, `Schema.org: ${type}`), url: `https://schema.org/${type}`, publisher: 'schema.org', lang: 'en' };
+  return { label: fmt('Schema.org：{type} 定義', 'Schema.org: {type}', { type }), url: `https://schema.org/${type}`, publisher: 'schema.org', lang: 'en' };
 }
 
 export function googleLink(slug: string, zh: string, en: string): LearnMoreLink {
   return {
-    label: t(`Google 搜尋中心：${zh}`, `Google Search Central: ${en}`),
+    label: fmt('Google 搜尋中心：{page}', 'Google Search Central: {page}', { page: t(zh, en) }),
     url: `https://developers.google.com/search/docs/appearance/${slug}`,
     publisher: 'google',
   };

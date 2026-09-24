@@ -10,6 +10,7 @@ import { cloudSignal } from '../../lib/cloud';
 import { updateSignal, useSignal } from '../../lib/signals';
 import { getStore, useAppState } from '../../lib/store';
 import type { ThemePreference } from '../../lib/persistence';
+import { LanguageMenu } from './LanguageMenu';
 
 interface NavItem {
   readonly route: Route;
@@ -81,7 +82,7 @@ const THEME_ORDER: readonly ThemePreference[] = ['light', 'dark', 'system'];
 const THEME_ICON: Record<ThemePreference, IconName> = { system: 'monitor', light: 'sun', dark: 'moon' };
 
 function TopBar({ route }: { route: Route }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const theme = useAppState((state) => state.prefs.theme);
   const online = useOnline();
   const install = useInstallState();
@@ -123,16 +124,7 @@ function TopBar({ route }: { route: Route }) {
         >
           <Icon name={THEME_ICON[theme]} size={20} />
         </button>
-        <button
-          type="button"
-          className="lang-btn topbar-icon"
-          aria-label={t('top.language')}
-          title={t('top.language')}
-          lang={locale === 'zh-TW' ? 'en' : 'zh-Hant-TW'}
-          onClick={() => store.setPreferences({ locale: locale === 'zh-TW' ? 'en' : 'zh-TW' })}
-        >
-          {t('top.languageShort')}
-        </button>
+        <LanguageMenu />
         <LinkButton variant="secondary" size="sm" href={hrefFor({ name: 'account' })} className="topbar-join" icon="user">
           {t(signedIn ? 'top.account' : 'top.join')}
         </LinkButton>

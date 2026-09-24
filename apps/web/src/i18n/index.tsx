@@ -1,8 +1,10 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import type { Locale, LocalizedText } from 'truelink-schema-document';
-import { messages, type MessageKey } from './messages';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { fallbackLocale, isSourceLocale, localize, type Locale, type LocalizedText } from 'truelink-schema-document';
+import { ensureLocale, isLocaleReady, translatedMessage } from './locales';
+import { sourceMessages, type MessageKey } from './messages';
 
 export type { MessageKey };
+export { ensureLocale, isLocaleReady };
 
 type Params = Record<string, string | number>;
 
@@ -12,16 +14,61 @@ export function formatMessage(template: string, params?: Params): string {
 }
 
 export function translate(locale: Locale, key: MessageKey, params?: Params): string {
-  return formatMessage(messages[locale][key], params);
+  const text = isSourceLocale(locale) ? sourceMessages[locale][key] : (translatedMessage(locale, key) ?? sourceMessages[fallbackLocale(locale)][key]);
+  return formatMessage(text, params);
 }
 
+/** Maps one BCP 47 language tag to a supported locale. */
+export function matchLocale(tag: string): Locale | undefined {
+  const [language = '', ...rest] = tag.toLowerCase().split(/[-_]/);
+  switch (language) {
+    case 'en':
+      return 'en';
+    case 'zh':
+      // Traditional script or a Traditional-Chinese region; plain "zh" usually means Simplified.
+      return rest.some((part) => part === 'hant' || part === 'tw' || part === 'hk' || part === 'mo') ? 'zh-TW' : 'zh-CN';
+    case 'ja':
+      return 'ja';
+    case 'es':
+      return 'es';
+    case 'pt':
+      return 'pt-BR';
+    case 'id':
+    case 'in':
+      return 'id';
+    default:
+      return undefined;
+  }
+}
+
+/** The first supported browser language; English otherwise. */
 export function detectLocale(languages: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages): Locale {
   for (const language of languages) {
-    const lower = language.toLowerCase();
-    if (lower.startsWith('zh')) return 'zh-TW';
-    if (lower.startsWith('en')) return 'en';
+    const locale = matchLocale(language);
+    if (locale) return locale;
   }
-  return 'zh-TW';
+  return 'en';
+}
+
+/** The locale to render: the preferred one once its translation has loaded, the previous one until then. */
+export function useReadyLocale(preferred: Locale): Locale {
+  const [shown, setShown] = useState<Locale>(() => (isLocaleReady(preferred) ? preferred : 'en'));
+  useEffect(() => {
+    if (isLocaleReady(preferred)) {
+      setShown(preferred);
+      return;
+    }
+    let active = true;
+    ensureLocale(preferred)
+      .catch(() => undefined)
+      .then(() => {
+        if (active) setShown(preferred);
+      });
+    return () => {
+      active = false;
+    };
+  }, [preferred]);
+  return isLocaleReady(preferred) ? preferred : shown;
 }
 
 export interface I18n {
@@ -40,7 +87,7 @@ export function createI18n(locale: Locale, now: () => number = Date.now): I18n {
   return {
     locale,
     t: (key, params) => translate(locale, key, params),
-    l: (text) => text[locale],
+    l: (text) => localize(text, locale),
     relativeTime(timestamp) {
       const seconds = Math.round((timestamp - now()) / 1000);
       const abs = Math.abs(seconds);
@@ -59,7 +106,7 @@ export function createI18n(locale: Locale, now: () => number = Date.now): I18n {
   };
 }
 
-const I18nContext = createContext<I18n>(createI18n('zh-TW'));
+const I18nContext = createContext<I18n>(createI18n('en'));
 
 export function I18nProvider({ locale, children }: { locale: Locale; children: ReactNode }) {
   const value = useMemo(() => createI18n(locale), [locale]);

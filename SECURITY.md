@@ -1,4 +1,14 @@
-# Security boundaries
+# Security
+
+## Reporting a vulnerability
+
+Please report vulnerabilities **privately** through GitHub:
+[Security → Report a vulnerability](https://github.com/Johnny050033/truelink-schema-web-tools/security/advisories/new).
+Don't open a public issue, and don't include real customer data in the report. We aim to
+acknowledge reports within a few working days. Issues in TrueLink's hosted services (not
+this repository) can be reported the same way. We'll forward them.
+
+## Security boundaries
 
 This is an initial, conservative toolkit, not an independently security-audited
 sanitizer or a replacement for authorization, database rules, CSP, or tenant isolation.

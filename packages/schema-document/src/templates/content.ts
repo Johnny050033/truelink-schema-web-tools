@@ -1,4 +1,5 @@
 import { t } from '../formats.js';
+import { fmt, localize } from '../i18n.js';
 import { comparableTime, issue } from '../issues.js';
 import { getAt, isJsonObject, listAt, textOf } from '../json.js';
 import type { AuditIssue, FieldOption, JsonObject, SchemaTemplate } from '../types.js';
@@ -133,7 +134,7 @@ export const faq: SchemaTemplate = {
       const question = textOf(item['name'])?.toLowerCase();
       if (!question) return;
       if (seen.has(question)) {
-        issues.push(issue('warning', 'duplicate_question', t(`第 ${index + 1} 題與前面的問題重複。`, `Question ${index + 1} duplicates an earlier question.`), { fieldId: 'mainEntity', path: ['mainEntity', index, 'name'] }));
+        issues.push(issue('warning', 'duplicate_question', fmt('第 {n} 題與前面的問題重複。', 'Question {n} duplicates an earlier question.', { n: index + 1 }), { fieldId: 'mainEntity', path: ['mainEntity', index, 'name'] }));
       }
       seen.add(question);
     });
@@ -293,7 +294,7 @@ export const breadcrumb: SchemaTemplate = {
     },
   ],
   starter: (locale, brand) => {
-    const home: JsonObject = { '@type': 'ListItem', name: locale === 'zh-TW' ? '首頁' : 'Home' };
+    const home: JsonObject = { '@type': 'ListItem', name: localize(t('首頁', 'Home'), locale) };
     const url = brand ? textOf(getAt(brand, ['url'])) : undefined;
     if (url) home['item'] = url;
     return { itemListElement: [home, { '@type': 'ListItem' }] };
@@ -307,7 +308,7 @@ export const breadcrumb: SchemaTemplate = {
     }
     items.forEach((item, index) => {
       if (index < items.length - 1 && item['item'] === undefined) {
-        issues.push(issue('warning', 'breadcrumb_missing_url', t(`第 ${index + 1} 層缺少網址（只有最後一層可以省略）。`, `Level ${index + 1} needs a URL (only the last level may omit it).`), { fieldId: 'itemListElement', path: ['itemListElement', index, 'item'] }));
+        issues.push(issue('warning', 'breadcrumb_missing_url', fmt('第 {n} 層缺少網址（只有最後一層可以省略）。', 'Level {n} needs a URL (only the last level may omit it).', { n: index + 1 }), { fieldId: 'itemListElement', path: ['itemListElement', index, 'item'] }));
       }
     });
     return issues;

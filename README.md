@@ -1,144 +1,171 @@
-# truelink-schema-web-tools
+<p align="center">
+  <img src="apps/web/public/icons/icon-192.png" width="72" height="72" alt="">
+</p>
 
-Independent TypeScript utilities for strict object validation and isolated static
-web embeds, plus **TrueLink Schema Studio**, an installable local-first Schema.org
-editor. MIT licensed; all fixtures are synthetic. No SaaS source, credentials,
-customer data, deployment wiring, or paid services are included.
+<h1 align="center">TrueLink Schema Studio</h1>
+
+<p align="center">
+  <b>A free, open-source workspace for Schema.org structured data (JSON-LD).</b><br>
+  Build your brand's structured data with guided forms, get instant checks, and preview what
+  search engines and AI assistants can read about you. No sign-up; your data stays in your browser.
+</p>
+
+<p align="center">
+  <a href="https://johnny050033.github.io/truelink-schema-web-tools/"><b>Try it in your browser →</b></a>
+  &nbsp;·&nbsp; <a href="#features">Features</a>
+  &nbsp;·&nbsp; <a href="#use-the-core-in-your-project">Developers</a>
+  &nbsp;·&nbsp; <a href="CONTRIBUTING.md">Contribute</a>
+  &nbsp;·&nbsp; <a href="README.zh-TW.md">繁體中文</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Johnny050033/truelink-schema-web-tools/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Johnny050033/truelink-schema-web-tools/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-2EA572"></a>
+  <img alt="7 languages" src="https://img.shields.io/badge/languages-7-1B4C92">
+  <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-E0B84C"></a>
+</p>
+
+<p align="center">
+  <img src="docs/assets/screenshot-editor.png" alt="Schema Studio editing a local business: guided form on the left, a completeness score, the plain-language 'what machines can read' preview and a search result preview on the right" width="900">
+</p>
+
+## Why
+
+Structured data tells search engines and AI assistants who you are: your organization,
+locations, people, products, events and answers. Written by hand, JSON-LD is easy to get
+subtly wrong (a missing time zone, a relative URL, a price with a currency sign), and hard to
+review.
+
+Schema Studio gives you:
+
+- **guided forms** built from documented requirements
+- **checks** that explain what to fix and why
+- a **plain-language preview** of what machines can read about you
+
+It's advice, not a promise: structured data can help machines understand your brand, but no
+tool can guarantee rankings, rich results or AI citations.
+
+## Features
+
+- **11 guided templates:** Organization, LocalBusiness (with subtypes), Person, WebSite,
+  Service, Product, Article, FAQPage, Event, BreadcrumbList, plus any other type through a
+  generic template.
+- **Brand profile once, reused everywhere:** your name, logo, address and official profiles
+  fill new documents automatically.
+- **Instant, explained checks:**
+  - required and recommended properties
+  - URLs, ISO dates with time zones, international phone numbers, currencies, languages
+    and opening hours
+  - an advisory completeness score
+- **"What machines can read" preview:** readable sentences, key facts and a search-result
+  preview, rendered as text only.
+- **Import and export:**
+  - Import pasted JSON-LD, a full page's HTML source or TrueLink web tool data (bounded
+    and previewed first).
+  - Export JSON-LD, a ready `<script>` tag or full backups.
+- **Private by design:** no tracking or analytics, no server calls, a strict Content
+  Security Policy, and data kept in your browser.
+- **Installable and offline:** a PWA for desktop and mobile.
+- **7 languages:** see [below](#languages).
+- **Optional TrueLink account:** cloud drafts across devices, hosted deployment and AI
+  visibility tools on the [TrueLink platform](https://truelink-group.com/en/). Nothing
+  uploads without an explicit click.
+
+## Languages
+
+| Language | Status |
+| --- | --- |
+| English | source |
+| 繁體中文 (Traditional Chinese) | source |
+| 简体中文 (Simplified Chinese) | beta |
+| 日本語 (Japanese) | beta |
+| Español (Spanish) | beta |
+| Português (Brasil) | beta |
+| Bahasa Indonesia | beta |
+
+Beta languages were translated with AI assistance and are waiting for native-speaker review.
+**Reviewing a language is one of the most helpful contributions you can make.** See
+[Translations](CONTRIBUTING.md#translations). Schema Studio picks your browser language
+automatically; change it anytime from the language menu.
+
+## Use it
+
+- **In the browser:** open the [live demo](https://johnny050033.github.io/truelink-schema-web-tools/).
+  It's the full app; everything stays on your device.
+- **As an app:** in Chrome or Edge choose *Install*; on iOS use *Share → Add to Home Screen*.
+- **Locally:**
+
+  ```sh
+  pnpm install --frozen-lockfile && pnpm dev   # http://localhost:5173
+  ```
+
+## Use the core in your project
+
+The engine behind the Studio is a separate, dependency-free package, `truelink-schema-document`.
+The TrueLink web tool uses the same package, so every tool gives the same checks and output.
+
+```ts
+import { auditDocument, buildOutput, createDocumentData, describeDocument, getTemplate, toJsonLdScript } from 'truelink-schema-document';
+
+const template = getTemplate('local-business');
+const data = { ...createDocumentData('local-business', { locale: 'en' }), name: 'Morning Light Café', url: 'https://example.com/' };
+
+auditDocument(template, data);                            // { score, grade, issues, missing, … }: advisory
+describeDocument(template, data, 'en').sentences;         // ["Morning Light Café is a local business.", …]
+toJsonLdScript(buildOutput(data, template));              // <script type="application/ld+json">…</script>
+```
+
+Tagged [releases](https://github.com/Johnny050033/truelink-schema-web-tools/releases) ship:
+
+- ESM, CommonJS and browser-global builds (`window.TrueLinkSchema`)
+- translation catalogs
+- conformance cases
+- npm tarballs
+
+The packages aren't on the npm registry yet.
 
 | Workspace | What it is |
 | --- | --- |
-| `/` (`truelink-schema-web-tools`) | Core library: flat-object validation and the sandboxed static embed (below) |
-| [`packages/schema-document`](packages/schema-document/README.md) | The shared core: Schema.org JSON-LD templates, bounded import, safe script output, advisory checks, the `SchemaDocumentRecord` contract and conversion to/from the TrueLink web tool's stored format; also ships browser builds and conformance cases |
-| [`packages/cloud-client`](packages/cloud-client/README.md) | `truelink-schema-cloud`: the host-bridge protocol (client, host dispatcher, in-memory reference host) for TrueLink cloud drafts |
-| [`apps/web`](apps/web/README.md) | **Schema Studio** PWA: brand-profile wizard, form/JSON-LD editor, live previews, import/export, TrueLink sign-up funnel and, when served by TrueLink, cloud drafts and publishing |
+| [`packages/schema-document`](packages/schema-document/README.md) | Shared core: templates, checks, descriptions, bounded import, safe `<script>` output, the `SchemaDocumentRecord` contract and translations |
+| [`packages/cloud-client`](packages/cloud-client/README.md) | `truelink-schema-cloud`: the host-bridge protocol for optional TrueLink cloud drafts |
+| [`apps/web`](apps/web/README.md) | Schema Studio (React PWA) |
+| [`/` root](docs/LIBRARY.md) | Strict flat-object validation and sandboxed static embeds |
 
-How these pieces serve every TrueLink surface (web tool, Studio, app, extension, plugins,
-developer and AI tools), and how one update reaches all of them, is described in the
-[platform strategy](docs/PLATFORM_STRATEGY.zh-TW.md) (Traditional Chinese).
-
-Try the app locally with `pnpm install --frozen-lockfile && pnpm dev`, then open
-<http://localhost:5173>. It works offline once loaded and sends no data to any server.
-
-The code is MIT licensed. The TrueLink name, shield logo and app icons used by the
-official Schema Studio build are **not** covered by the MIT License; see
-[TRADEMARKS.md](TRADEMARKS.md) before redistributing a fork.
+How the pieces fit together: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Develop
 
-Requires Node.js **22.13+** and **pnpm 11.19.0** (pinned in `package.json`).
+Requires Node.js **22.13+** and **pnpm 11.19.0**.
 
 ```sh
 git clone https://github.com/Johnny050033/truelink-schema-web-tools.git
 cd truelink-schema-web-tools
 pnpm install --frozen-lockfile
-pnpm check
+pnpm check   # typecheck, translation checks, tests and builds for every workspace
 ```
 
-`check` runs TypeScript checks, Vitest tests and builds for the core library, then the
-same for every workspace (`packages/*`, `apps/*`); `check:core` covers only the library.
-Use `pnpm test:watch` while developing. Checks run locally; no hosted CI or automatic
-deployment is configured. Packages are deliberately `private: true` to prevent
-accidental npm publication; the source repository is public.
+CI runs `pnpm check` on every pull request. Pushes to `main` deploy the demo to GitHub
+Pages, and `v*` tags publish release artifacts.
 
-To create a locally installable library archive after checking:
+## Contributing
 
-```sh
-pnpm pack --pack-destination artifacts
-# In a consuming project, install the resulting .tgz with pnpm add <archive-path>.
-```
+Ideas, bug reports, templates and translations are all welcome:
 
-The library also exposes `truelink-schema-web-tools/schema` and
-`truelink-schema-web-tools/embed` subpaths, so a consumer that only validates objects
-does not bundle the HTML/CSS parsers.
+- Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+- Or open an [issue](https://github.com/Johnny050033/truelink-schema-web-tools/issues/new/choose).
+- Report security problems privately ([SECURITY.md](SECURITY.md)).
+- Everyone participating agrees to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Schema Studio is installable as a PWA on desktop and mobile browsers. Native store
-packages (App Store, Google Play), desktop installers and the browser extension are
-**not** included; see [apps/web/README.md](apps/web/README.md) for the packaging path.
+If Schema Studio is useful to you, a ⭐ helps others find it.
 
-## Object schema validation
+## About TrueLink
 
-```ts
-import { validateSchema, type FieldRule } from 'truelink-schema-web-tools';
+Schema Studio is made by [TrueLink](https://truelink-group.com/en/), the AI Trust Engine.
+TrueLink helps brands organize verifiable identity, content and official profiles, so AI
+engines can find, verify and cite them. This repository contains no TrueLink backend code,
+credentials or customer data.
 
-const schema = {
-  title: { type: 'string', required: true, minLength: 1, maxLength: 80 },
-  status: { type: 'string', enum: ['draft', 'review'] },
-  publishedAt: { type: 'string', serverManaged: true },
-} satisfies Record<string, FieldRule>;
+## License
 
-validateSchema({ title: 'Synthetic example', status: 'draft' }, schema);
-// { valid: true, issues: [] }
-validateSchema({ title: 'Example', publishedAt: 'not-client-controlled' }, schema);
-// invalid: a server-managed field was supplied
-```
-
-Unknown fields are rejected. There is no coercion, mutation or silent stripping.
-String lengths count Unicode code points (not bytes or grapheme clusters). Number
-fields must be finite; booleans must really be booleans. Invalid trusted schema
-definitions throw `TypeError`. This is **flat application-object validation**, not
-a complete JSON Schema / Schema.org validator. See [SECURITY.md](SECURITY.md).
-At most 100 own input/schema fields are accepted, including non-enumerable fields;
-symbol and prototype-sensitive keys cannot bypass validation. Server-managed fields
-are never required from the client even if the server's schema marks them required.
-
-## Optional TrueLink cloud drafts (client side ready, host side pending)
-
-Schema Studio is local-first: editing, import/export and backups work without an account.
-When TrueLink serves the Studio on its own origin and configures `VITE_TRUELINK_HOST_URL`,
-the Studio talks to a TrueLink host page over `postMessage` (`truelink-schema-cloud`):
-explicit per-document uploads, private drafts with revision checks, linked documents that
-follow newer cloud versions when unchanged locally, and confirmed publishing. The host page,
-storage and backend functions belong to the private TrueLink SaaS and are **not** in this
-repository. This repository still makes **no network requests to a storage API** and
-contains no server credentials; without a host the sign-up buttons are plain links that
-carry no data. See the [cloud sync roadmap](docs/CLOUD_SYNC_ROADMAP.md) for boundaries and
-acceptance criteria.
-
-## Safe static embed profile
-
-```ts
-import { validateEmbed, createSandboxedEmbed } from 'truelink-schema-web-tools';
-
-const input = {
-  html: '<section class="card"><h2>Synthetic demo</h2><p>Hello</p></section>',
-  css: '.embed-root { color: #17324d } .embed-root .card { padding: 16px }',
-};
-
-validateEmbed(input); // { valid: true, issues: [] }
-const iframeHtml = createSandboxedEmbed(input);
-```
-
-The renderer throws on invalid content and returns one escaped, sandboxed iframe.
-The input is parsed with **parse5** and **CSS Tree** rather than sanitized by regex.
-The iframe is network-disabled and isolated from the host origin. Its fixed initial
-dimensions are 640 × 360; a trusted host may style the **iframe element** responsively
-without changing its sandbox, CSP, or srcdoc. Content itself may scroll.
-
-Supported HTML is static text/container/list/table markup. Only `class`, `title`,
-`lang`, and validated `dir` attributes are accepted. Scripts, inline event handlers,
-inline styles, SVG/MathML, links, images, forms, nested iframes and resource attributes
-are rejected in v0.1. This intentionally trades flexibility for a small attack surface.
-
-Every CSS selector must begin with `.embed-root` and use only simple class/tag
-selectors with descendant or child combinators. Global selectors, `@import` (all
-at-rules), fixed/sticky/absolute positioning and unsafe CSS features are blocked.
-HTML is capped at 50,000 UTF-16 code units, CSS at 20,000, parsed nodes at 2,000 and
-HTML depth at 40; at most 64 diagnostic issues are returned.
-
-## Tests and limitations
-
-`test/fixtures/` contains invented examples and attack strings only. Tests cover
-unknown/server-managed fields, enum/type/length/number bounds, prototype-related
-keys, malformed schemas, script/handler injection, scoped CSS, escaped fixed
-position, at-rules, resource URLs, size bounds and iframe attribute/CSP serialization.
-These are unit tests, not a claim of production deployment or browser security certification.
-
-## References
-
-- [parse5](https://parse5.js.org/)
-- [CSS Tree](https://github.com/csstree/csstree)
-- [Vitest](https://vitest.dev/guide/)
-- [iframe sandbox](https://html.spec.whatwg.org/multipage/iframe-embed-object.html#attr-iframe-sandbox)
-
-Contributions should include a synthetic failing fixture, a minimal fix, and a
-passing `pnpm check`. Keep this repository independent of private platform data.
+The code is [MIT licensed](LICENSE). The TrueLink name, shield logo and app icons are **not**
+covered by the MIT License; see [TRADEMARKS.md](TRADEMARKS.md) before redistributing a fork.

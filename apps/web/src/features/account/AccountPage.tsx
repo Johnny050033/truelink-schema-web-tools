@@ -1,4 +1,4 @@
-import { CLOUD_HOST_PATH, TRUELINK_LINKS } from '../../config';
+import { CLOUD_HOST_PATH, forLocale, TRUELINK_LINKS } from '../../config';
 import { BrandShield } from '../../components/Brand';
 import { Icon, type IconName } from '../../components/Icon';
 import { Chip, LinkButton } from '../../components/ui';
@@ -86,15 +86,15 @@ export function AccountPage() {
           <p className="hero-sub">{t('account.hero.body')}</p>
           <div className="hero-ctas">
             {signedIn ? (
-              <LinkButton variant="accent" size="lg" href={TRUELINK_LINKS.webTool[locale]} external>
+              <LinkButton variant="accent" size="lg" href={forLocale(TRUELINK_LINKS.webTool, locale)} external>
                 {t('account.cta.open')}
               </LinkButton>
             ) : (
               <>
-                <LinkButton variant="accent" size="lg" href={TRUELINK_LINKS.signup[locale]} external>
+                <LinkButton variant="accent" size="lg" href={forLocale(TRUELINK_LINKS.signup, locale)} external>
                   {t('account.cta.register')}
                 </LinkButton>
-                <LinkButton variant="ghost" size="lg" href={TRUELINK_LINKS.webTool[locale]} external className="btn-on-dark">
+                <LinkButton variant="ghost" size="lg" href={forLocale(TRUELINK_LINKS.webTool, locale)} external className="btn-on-dark">
                   {t('account.cta.open')}
                 </LinkButton>
               </>
@@ -187,7 +187,7 @@ export function AccountPage() {
         </div>
         <div className="compare-cta">
           {signedIn ? null : (
-            <LinkButton variant="primary" href={TRUELINK_LINKS.signup[locale]} external>
+            <LinkButton variant="primary" href={forLocale(TRUELINK_LINKS.signup, locale)} external>
               {t('account.cta.register')}
             </LinkButton>
           )}

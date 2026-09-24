@@ -1,4 +1,4 @@
-import type { Locale } from 'truelink-schema-document';
+import { fallbackLocale, type Locale, type SourceLocale } from 'truelink-schema-document';
 
 /** Accepts only absolute HTTPS URLs; anything else falls back to the default. */
 export function httpsOr(value: string | undefined, fallback: string): string {
@@ -14,6 +14,13 @@ export function httpsOr(value: string | undefined, fallback: string): string {
 const env = import.meta.env;
 
 export const APP_VERSION = __APP_VERSION__;
+
+/** A value per locale: both source languages are required; other locales fall back to theirs. */
+export type PerLocale = Readonly<Record<SourceLocale, string>> & Readonly<Partial<Record<Locale, string>>>;
+
+export function forLocale(values: PerLocale, locale: Locale): string {
+  return values[locale] ?? values[fallbackLocale(locale)];
+}
 
 /**
  * Outbound TrueLink destinations. They are plain links opened in a new tab:
@@ -32,7 +39,29 @@ export const TRUELINK_LINKS = {
   },
   eeatGuide: 'https://www.truelink-group.com/en/eeat-guide/',
   source: 'https://github.com/Johnny050033/truelink-schema-web-tools',
-} as const satisfies Record<string, string | Record<Locale, string>>;
+} as const satisfies Record<string, string | PerLocale>;
+
+const REPOSITORY = TRUELINK_LINKS.source;
+
+/** Google Search Central serves its documentation in these languages (`hl`). */
+const GOOGLE_DOCS_LANGUAGE: Readonly<Partial<Record<Locale, string>>> = { 'zh-TW': 'zh-tw', 'zh-CN': 'zh-cn', ja: 'ja', es: 'es-419', 'pt-BR': 'pt-br', id: 'id' };
+
+/** Opens Google documentation in the interface language; other links are unchanged. Only the language is added. */
+export function documentationUrl(url: string, publisher: string, locale: Locale): string {
+  const language = publisher === 'google' ? GOOGLE_DOCS_LANGUAGE[locale] : undefined;
+  if (!language) return url;
+  const target = new URL(url);
+  target.searchParams.set('hl', language);
+  return target.toString();
+}
+
+/** Public feedback channels. Issue forms remind people not to paste private data. */
+export const COMMUNITY_LINKS = {
+  bug: `${REPOSITORY}/issues/new?template=bug_report.yml`,
+  idea: `${REPOSITORY}/issues/new?template=feature_request.yml`,
+  translate: `${REPOSITORY}/blob/main/CONTRIBUTING.md#translations`,
+  star: REPOSITORY,
+} as const;
 
 /**
  * Same-origin path of the TrueLink host page that bridges cloud drafts (for example

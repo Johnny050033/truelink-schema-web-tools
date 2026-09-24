@@ -1,8 +1,16 @@
-/** UI locales supported by the bundled template copy. */
-export type Locale = 'zh-TW' | 'en';
-export const LOCALES: readonly Locale[] = ['zh-TW', 'en'];
+/** Languages every bundled string is written in. */
+export type SourceLocale = 'zh-TW' | 'en';
+export const SOURCE_LOCALES: readonly SourceLocale[] = ['zh-TW', 'en'];
 
-export type LocalizedText = Readonly<Record<Locale, string>>;
+/**
+ * UI locales. Locales other than the two source languages resolve through translation
+ * catalogs (see `registerCatalog`) and fall back to English, or to zh-TW for zh-CN.
+ */
+export type Locale = 'en' | 'zh-TW' | 'zh-CN' | 'ja' | 'es' | 'pt-BR' | 'id';
+export const LOCALES: readonly Locale[] = ['en', 'zh-TW', 'zh-CN', 'ja', 'es', 'pt-BR', 'id'];
+
+/** Text in both source languages, optionally with explicit translations for other locales. */
+export type LocalizedText = Readonly<Record<SourceLocale, string>> & Readonly<Partial<Record<Exclude<Locale, SourceLocale>, string>>>;
 
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | JsonObject;

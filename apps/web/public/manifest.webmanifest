@@ -2,8 +2,8 @@
   "id": "./",
   "name": "TrueLink Schema Studio",
   "short_name": "Schema Studio",
-  "description": "免費、免註冊的 Schema.org 結構化資料（JSON-LD）工作台：建立品牌資料、即時健檢與預覽 AI 可能如何理解你的品牌。資料只存在你的裝置，可離線使用。",
-  "lang": "zh-Hant-TW",
+  "description": "A free, open-source workspace for Schema.org structured data (JSON-LD): build your brand profile, get instant checks and preview what AI assistants can read about your brand. Data stays on your device and works offline.",
+  "lang": "en",
   "dir": "ltr",
   "start_url": "./#/",
   "scope": "./",
@@ -44,8 +44,8 @@
   ],
   "shortcuts": [
     {
-      "name": "新增 Schema",
-      "short_name": "新增",
+      "name": "New schema",
+      "short_name": "New",
       "url": "./#/templates",
       "icons": [
         {
@@ -56,8 +56,8 @@
       ]
     },
     {
-      "name": "我的 Schema",
-      "short_name": "我的 Schema",
+      "name": "My schemas",
+      "short_name": "My schemas",
       "url": "./#/library",
       "icons": [
         {
@@ -68,8 +68,8 @@
       ]
     },
     {
-      "name": "品牌資料",
-      "short_name": "品牌",
+      "name": "Brand profile",
+      "short_name": "Brand",
       "url": "./#/brand",
       "icons": [
         {

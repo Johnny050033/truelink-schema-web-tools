@@ -1,5 +1,5 @@
 import { validateSchema, type FieldRule } from 'truelink-schema-web-tools/schema';
-import { checkJsonValue, isJsonObject, isTemplateId, LIMITS, TEMPLATE_IDS, type JsonObject, type Locale, type TemplateId } from 'truelink-schema-document';
+import { checkJsonValue, isJsonObject, isTemplateId, LIMITS, LOCALES, TEMPLATE_IDS, type JsonObject, type Locale, type TemplateId } from 'truelink-schema-document';
 import { LOCAL_LIMITS } from '../config';
 
 export interface SchemaDoc {
@@ -48,7 +48,7 @@ const docEnvelopeSchema = {
 
 const prefsSchema = {
   theme: { type: 'string', required: true, enum: ['system', 'light', 'dark'] },
-  locale: { type: 'string', required: true, enum: ['zh-TW', 'en'] },
+  locale: { type: 'string', required: true, enum: LOCALES },
   exportCount: { type: 'number', required: true, min: 0, max: 1_000_000 },
   nudgeDismissedAt: { type: 'number', required: true, min: 0 },
   installDismissedAt: { type: 'number', required: true, min: 0 },

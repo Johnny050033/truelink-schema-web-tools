@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Johnny050033/truelink-schema-web-tools/security/advisories/new
+    about: Please report vulnerabilities privately, never in a public issue. See SECURITY.md.
+  - name: TrueLink account or platform questions
+    url: https://truelink-group.com/
+    about: Questions about TrueLink accounts, plans or the hosted platform (not this open-source project).

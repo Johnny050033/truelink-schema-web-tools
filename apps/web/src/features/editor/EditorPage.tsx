@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { buildOutput, displayName, getTemplate, templateForTypes, toJsonLdJson, typeLabel, typesOf, type JsonObject } from 'truelink-schema-document';
-import { LOCAL_LIMITS } from '../../config';
+import { documentationUrl, LOCAL_LIMITS } from '../../config';
 import { Icon } from '../../components/Icon';
 import { Menu } from '../../components/Menu';
 import { useToast } from '../../components/Toast';
@@ -287,7 +287,7 @@ export function EditorPage({ id }: { id: string }) {
               <ul>
                 {template.learnMore.map((link) => (
                   <li key={link.url}>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className={`learn-link learn-${link.publisher}`} hrefLang={link.lang}>
+                    <a href={documentationUrl(link.url, link.publisher, locale)} target="_blank" rel="noopener noreferrer" className={`learn-link learn-${link.publisher}`} hrefLang={link.lang}>
                       <span>{l(link.label)}</span>
                       <Icon name="external" size={14} />
                       <span className="sr-only">{t('common.newTab')}</span>

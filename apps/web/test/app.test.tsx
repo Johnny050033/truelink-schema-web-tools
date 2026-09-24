@@ -5,8 +5,8 @@ import { httpsOr } from '../src/config';
 import { CodeBlock } from '../src/components/CodeBlock';
 import { AiDescription, EntityCard, SearchPreview } from '../src/features/editor/Previews';
 import { clearHiddenFields } from '../src/features/editor/FormView';
-import { detectLocale, formatMessage } from '../src/i18n';
-import { messages } from '../src/i18n/messages';
+import { formatMessage } from '../src/i18n';
+import { sourceMessages as messages, type MessageKey } from '../src/i18n/messages';
 import { hrefFor, parseHash } from '../src/lib/router';
 
 const attack = '<img src=x onerror="alert(1)"><script>alert(2)</script>';
@@ -63,7 +63,7 @@ describe('routing', () => {
 describe('interface copy', () => {
   it('has matching placeholders in both languages', () => {
     const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
-    for (const key of Object.keys(messages['zh-TW']) as (keyof (typeof messages)['zh-TW'])[]) {
+    for (const key of Object.keys(messages.en) as MessageKey[]) {
       expect(placeholders(messages.en[key]), key).toEqual(placeholders(messages['zh-TW'][key]));
       expect(messages.en[key].trim().length, key).toBeGreaterThan(0);
     }
@@ -76,12 +76,9 @@ describe('interface copy', () => {
     expect(all).toContain('不保證出現複合式結果');
   });
 
-  it('formats messages and detects locale', () => {
+  it('formats messages', () => {
     expect(formatMessage('{count}/{max}', { count: 1, max: 20 })).toBe('1/20');
     expect(formatMessage('{missing}', {})).toBe('{missing}');
-    expect(detectLocale(['en-US'])).toBe('en');
-    expect(detectLocale(['zh-HK', 'en'])).toBe('zh-TW');
-    expect(detectLocale(['fr-FR'])).toBe('zh-TW');
   });
 });
 
@@ -92,5 +89,15 @@ describe('type changes', () => {
     const after = { ...before, '@type': 'Store' };
     expect(clearHiddenFields(template, before, after)).toEqual({ node: { '@type': 'Store', name: 'R' }, cleared: 2 });
     expect(clearHiddenFields(template, before, { ...before, name: 'R2' }).cleared).toBe(0);
+  });
+});
+
+describe('documentation links', () => {
+  it('opens Google documentation in the interface language and leaves other links alone', async () => {
+    const { documentationUrl } = await import('../src/config');
+    const google = 'https://developers.google.com/search/docs/appearance/structured-data/local-business';
+    expect(documentationUrl(google, 'google', 'ja')).toBe(`${google}?hl=ja`);
+    expect(documentationUrl(google, 'google', 'en')).toBe(google);
+    expect(documentationUrl('https://schema.org/Event', 'schema.org', 'ja')).toBe('https://schema.org/Event');
   });
 });

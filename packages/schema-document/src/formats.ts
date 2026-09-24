@@ -1,8 +1,9 @@
+import { lazyText } from './i18n.js';
 import type { Locale, LocalizedText } from './types.js';
 
-/** Builds localized text from one function, keeping both languages side by side. */
+/** Text built separately for every locale (computed on access). */
 export function localized(build: (locale: Locale) => string): LocalizedText {
-  return { 'zh-TW': build('zh-TW'), en: build('en') };
+  return lazyText(build);
 }
 
 export function t(zh: string, en: string): LocalizedText {
@@ -122,7 +123,18 @@ export function formatWallClock(value: string, locale: Locale): string {
   if (!match) return value;
   const [, year, month, day, hour, minute] = match;
   const time = hour !== undefined ? ` ${hour}:${minute}` : '';
-  if (month === undefined) return locale === 'zh-TW' ? `${year} 年` : String(year);
-  if (day === undefined) return locale === 'zh-TW' ? `${year} 年 ${Number(month)} 月` : `${year}-${month}`;
-  return locale === 'zh-TW' ? `${year}/${month}/${day}${time}` : `${year}-${month}-${day}${time}`;
+  if (locale === 'zh-TW' || locale === 'zh-CN' || locale === 'ja') {
+    if (month === undefined) return locale === 'zh-TW' ? `${year} 年` : `${year}年`;
+    if (day === undefined) return locale === 'zh-TW' ? `${year} 年 ${Number(month)} 月` : `${year}年${Number(month)}月`;
+    return `${year}/${month}/${day}${time}`;
+  }
+  if (locale === 'en') {
+    if (month === undefined) return String(year);
+    if (day === undefined) return `${year}-${month}`;
+    return `${year}-${month}-${day}${time}`;
+  }
+  // Day-first numeric dates for es, pt-BR and id.
+  if (month === undefined) return String(year);
+  if (day === undefined) return `${month}/${year}`;
+  return `${day}/${month}/${year}${time}`;
 }

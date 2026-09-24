@@ -50,6 +50,15 @@ check('converts TrueLink web tool data both ways', () => {
 });
 
 const esm = await import(new URL('../dist/bundles/truelink-schema-document.mjs', import.meta.url).href);
+check('translates through registered catalogs', () => {
+  assert.equal(core.LOCALES.length, 7);
+  const name = core.getTemplate('event').name;
+  assert.equal(core.localize(name, 'es'), name.en);
+  core.registerCatalog('es', vm.runInContext(`({ ${JSON.stringify(name.en)}: 'Evento de prueba' })`, sandbox));
+  assert.equal(core.localize(name, 'es'), 'Evento de prueba');
+  assert.equal(core.localize(name, 'zh-CN'), name['zh-TW']);
+});
+
 check('ES module bundle exposes the same API', () => {
   assert.equal(esm.CORE_VERSION, pkg.version);
   assert.equal(typeof esm.auditDocument, 'function');
