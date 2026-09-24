@@ -162,6 +162,12 @@
   --code-punct: var(--tl-slate-400);
   --code-tag: #f09c8f;
 
+  /* Toasts and the inverse button sit on dark or brand surfaces in both themes. */
+  --toast-bg: var(--tl-slate-900);
+  --toast-success-icon: var(--tl-emerald-400);
+  --toast-danger-icon: var(--tl-red-400);
+  --inverse-hover-bg: var(--tl-slate-100);
+
   --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.1);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
@@ -222,6 +228,17 @@
   --grade-excellent: var(--tl-emerald-500);
 
   --code-bg: var(--tl-ink);
+
+  --toast-bg: var(--tl-slate-800);
+  /* Deliberately the same in both themes: text on gold, the needs-work grade, code punctuation
+     (code blocks are dark in both), toast icons and the inverse button (always on navy). Declared
+     here too so every color token is explicitly defined per theme. */
+  --accent-contrast: var(--tl-slate-950);
+  --grade-needs-work: var(--tl-amber-500);
+  --code-punct: var(--tl-slate-400);
+  --toast-success-icon: var(--tl-emerald-400);
+  --toast-danger-icon: var(--tl-red-400);
+  --inverse-hover-bg: var(--tl-slate-100);
 
   --shadow-xs: 0 1px 2px rgba(2, 6, 23, 0.4);
   --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.4);
