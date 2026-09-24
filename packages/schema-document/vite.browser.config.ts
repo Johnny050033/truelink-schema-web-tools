@@ -4,20 +4,21 @@ import { defineConfig } from 'vite';
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 /**
- * Browser builds of the shared core, for pages without a bundler (for example the TrueLink
- * web tool's classic scripts): a global `TrueLinkSchema` script and an ES module.
+ * Self-contained bundles of the shared core for TrueLink tools without a bundler:
+ * a global `TrueLinkSchema` script for classic pages (the TrueLink web tool), an ES module,
+ * and a CommonJS file for Node.js CommonJS code (for example Cloud Functions).
  */
 export default defineConfig({
   build: {
-    outDir: 'dist/browser',
+    outDir: 'dist/bundles',
     emptyOutDir: true,
     target: 'es2020',
     sourcemap: true,
     lib: {
       entry: 'src/index.ts',
       name: 'TrueLinkSchema',
-      formats: ['iife', 'es'],
-      fileName: (format) => (format === 'iife' ? 'truelink-schema-document.global.js' : 'truelink-schema-document.browser.mjs'),
+      formats: ['iife', 'es', 'cjs'],
+      fileName: (format) => `truelink-schema-document.${format === 'iife' ? 'global.js' : format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rolldownOptions: { output: { postBanner: `/*! truelink-schema-document v${version} | MIT | https://github.com/Johnny050033/truelink-schema-web-tools */` } },
   },

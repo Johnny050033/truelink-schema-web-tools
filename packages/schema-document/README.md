@@ -26,9 +26,10 @@ present and well formed, and never promises rankings, rich results or AI citatio
 
 | File | For |
 | --- | --- |
-| `dist/index.js` (+ `.d.ts`) | bundlers and Node.js (`import … from 'truelink-schema-document'`) |
-| `dist/browser/truelink-schema-document.global.js` | pages without a bundler: `<script src="…global.js"></script>` exposes `window.TrueLinkSchema` |
-| `dist/browser/truelink-schema-document.browser.mjs` | `<script type="module">` imports |
+| `dist/index.js` (+ `.d.ts`) | bundlers and Node.js ES modules (`import … from 'truelink-schema-document'`) |
+| `dist/bundles/truelink-schema-document.cjs` | Node.js CommonJS, e.g. Cloud Functions (`require('truelink-schema-document')` resolves here) |
+| `dist/bundles/truelink-schema-document.global.js` | pages without a bundler: `<script src="…global.js"></script>` exposes `window.TrueLinkSchema` |
+| `dist/bundles/truelink-schema-document.mjs` | self-contained `<script type="module">` imports |
 | `conformance/legacy-store.json` | cases every consumer should pass after upgrading (web tool format round trips) |
 
 Tagged releases (`vX.Y.Z`, equal to this package's version) publish these files with
@@ -43,5 +44,5 @@ Per document 100 KiB, per import 300 KiB, depth 20, 2,000 values, 20 import bloc
 ## Develop
 
 ```sh
-pnpm --filter truelink-schema-document check   # typecheck, tests, declaration + browser builds, browser smoke test
+pnpm --filter truelink-schema-document check   # typecheck, tests, declarations + bundles, bundle smoke test
 ```

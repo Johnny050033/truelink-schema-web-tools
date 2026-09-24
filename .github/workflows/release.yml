@@ -30,8 +30,11 @@ jobs:
       - name: Collect artifacts
         run: |
           mkdir -p release
-          cp packages/schema-document/dist/browser/truelink-schema-document.global.js release/
-          cp packages/schema-document/dist/browser/truelink-schema-document.browser.mjs release/
+          cp packages/schema-document/dist/bundles/truelink-schema-document.global.js release/
+          cp packages/schema-document/dist/bundles/truelink-schema-document.mjs release/
+          cp packages/schema-document/dist/bundles/truelink-schema-document.cjs release/
+          cp packages/cloud-client/dist/bundles/truelink-schema-cloud.global.js release/
+          cp packages/cloud-client/dist/bundles/truelink-schema-cloud.mjs release/
           cp packages/schema-document/conformance/legacy-store.json release/conformance-legacy-store.json
           (cd packages/schema-document && pnpm pack --pack-destination ../../release)
           (cd packages/cloud-client && pnpm pack --pack-destination ../../release)

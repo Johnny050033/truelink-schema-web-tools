@@ -1,13 +1,14 @@
 /**
- * Smoke test for the browser builds: loads the global script the way a classic <script>
- * page would (no module loader, no DOM) and imports the ES module build.
+ * Smoke test for the bundles: loads the global script the way a classic <script> page would
+ * (no module loader, no DOM), imports the ES module and requires the CommonJS file.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import vm from 'node:vm';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
-const source = readFileSync(new URL('../dist/browser/truelink-schema-document.global.js', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../dist/bundles/truelink-schema-document.global.js', import.meta.url), 'utf8');
 assert.ok(source.startsWith(`/*! truelink-schema-document v${pkg.version}`), 'global build carries the version banner');
 
 const sandbox = {};
@@ -48,10 +49,17 @@ check('converts TrueLink web tool data both ways', () => {
   assert.deepEqual(JSON.parse(JSON.stringify(exported.storeObj)), stored);
 });
 
-const esm = await import(new URL('../dist/browser/truelink-schema-document.browser.mjs', import.meta.url).href);
-check('ES module build exposes the same API', () => {
+const esm = await import(new URL('../dist/bundles/truelink-schema-document.mjs', import.meta.url).href);
+check('ES module bundle exposes the same API', () => {
   assert.equal(esm.CORE_VERSION, pkg.version);
   assert.equal(typeof esm.auditDocument, 'function');
 });
 
-console.log(`\n${passed}/${passed} browser build checks passed`);
+const cjs = createRequire(import.meta.url)('../dist/bundles/truelink-schema-document.cjs');
+check('CommonJS bundle works from require()', () => {
+  assert.equal(cjs.CORE_VERSION, pkg.version);
+  const result = cjs.parseRecord({ format: 'truelink.schema-document', version: 1, id: 'doc_12345678', title: '', templateId: 'thing', data: { '@type': 'Thing' }, updatedAt: 1 });
+  assert.equal(result.ok, true);
+});
+
+console.log(`\n${passed}/${passed} bundle checks passed`);

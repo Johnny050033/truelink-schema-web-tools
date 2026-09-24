@@ -68,7 +68,8 @@ headless Chromium (Playwright 1.56 browser build 1194) on Linux.
 | `pnpm check` (core + all workspaces) | PASS |
 | Core library tests / built-entry smoke | 67/67; 4/4 |
 | `truelink-schema-document` tests | 89/89 (adds record validation, web tool format round trips, conformance cases, core version) |
-| Browser builds of the shared core | global script and ES module built; 4/4 smoke checks in a bare VM (version banner, script escaping, format round trip, ESM API) |
+| Bundles of the shared core | global script, ES module and CommonJS file built; 5/5 smoke checks (version banner, script escaping in a bare VM, format round trip, ESM API, `require()`) |
+| Host-page bundle of `truelink-schema-cloud` | global script and ES module built; 3/3 smoke checks in a bare VM (exports, handshake with `minCoreVersion`, save round trip) |
 | `truelink-schema-cloud` tests | 19/19 (handshake, timeouts, sign-in URL origin, revisions and conflicts, idempotency, quota, request validation, hidden host errors, publishing rules, change notices, minimum core version, window transport origin checks) |
 | `apps/web` tests | 39/39 (adds theme defaults, host-path validation, explicit sync, conflicts, auto-apply of unchanged linked documents, publishing, outdated tabs) |
 | `pnpm pack` of both packages | PASS; `workspace:*` resolves to the real version |

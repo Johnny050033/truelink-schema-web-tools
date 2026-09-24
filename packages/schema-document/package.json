@@ -9,10 +9,11 @@
     ".": {
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/bundles/truelink-schema-document.cjs"
     },
-    "./browser": "./dist/browser/truelink-schema-document.browser.mjs",
-    "./browser.global": "./dist/browser/truelink-schema-document.global.js",
+    "./global": "./dist/bundles/truelink-schema-document.global.js",
+    "./bundle": "./dist/bundles/truelink-schema-document.mjs",
     "./conformance/legacy-store.json": "./conformance/legacy-store.json"
   },
   "files": [

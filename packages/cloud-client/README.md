@@ -108,10 +108,20 @@ if (window.parent !== window) {
 }
 ```
 
+## Bundles for host pages
+
+| File | For |
+| --- | --- |
+| `dist/index.js` (+ `.d.ts`) | bundlers (`import … from 'truelink-schema-cloud'`) |
+| `dist/bundles/truelink-schema-cloud.global.js` | classic `<script>` host pages: exposes `window.TrueLinkCloud` (shared core included) |
+| `dist/bundles/truelink-schema-cloud.mjs` | self-contained `<script type="module">` imports |
+
+Tagged releases publish both bundles with checksums.
+
 ## Develop
 
 ```sh
-pnpm --filter truelink-schema-cloud check   # typecheck, tests, build
+pnpm --filter truelink-schema-cloud check   # typecheck, tests, build, bundle smoke test
 ```
 
 MIT licensed. See the repository [TRADEMARKS.md](../../TRADEMARKS.md) for brand assets.
