@@ -1,6 +1,17 @@
-import { cloneJson, toLegacyStoreObj, type JsonObject, type LegacyStoreObj, type SchemaDocumentRecord } from 'truelink-schema-document';
+import {
+  certStatusUrl,
+  cloneJson,
+  hostedSchemaScriptUrl,
+  maskApiKey,
+  normalizeDomainList,
+  toLegacyStoreObj,
+  type JsonObject,
+  type LegacyStoreObj,
+  type SchemaDocumentRecord,
+} from 'truelink-schema-document';
 import {
   CloudError,
+  type ApiKeyState,
   type CloudDraft,
   type DeleteDraftInput,
   type HostAccount,
@@ -10,7 +21,24 @@ import {
   type PublishInput,
   type PublishResult,
   type SaveDraftInput,
+  type IssueApiKeyInput,
+  type IssuedApiKey,
+  type KycState,
+  type VerificationStatus,
 } from './protocol.js';
+
+/** Verified Schema state of the signed-in account in the reference host. */
+export interface MemoryVerificationOptions {
+  readonly kyc: KycState;
+  readonly membershipActive: boolean;
+  readonly verifiedDomains: readonly string[];
+  /** Account id used in the hosted script URL once a schema is published. */
+  readonly accountId?: string;
+  /** Same-origin KYC page. */
+  readonly kycUrl?: string;
+  /** Deterministic keys for tests. */
+  readonly makeApiKey?: () => string;
+}
 
 export interface MemoryHostOptions {
   readonly account?: HostAccount | null;
@@ -22,11 +50,15 @@ export interface MemoryHostOptions {
   readonly score?: (storeObj: LegacyStoreObj) => OfficialScore;
   /** Starting public schema, e.g. one saved earlier by the TrueLink web tool. */
   readonly published?: PublishedSchema | null;
+  /** Enables the Verified Schema methods (KYC status, verified domains, keyed API credential). */
+  readonly verification?: MemoryVerificationOptions;
 }
 
 export interface MemoryHost extends HostImplementation {
   signIn(account: HostAccount): void;
   signOut(): void;
+  /** Test control: e.g. approve KYC or end the membership, as TrueLink staff or billing would. */
+  setVerification(patch: Partial<Pick<MemoryVerificationOptions, 'kyc' | 'membershipActive' | 'verifiedDomains'>>): void;
   /** Read-only view for tests. */
   snapshot(): { readonly drafts: readonly CloudDraft[]; readonly published: PublishedSchema | null };
 }
@@ -64,6 +96,29 @@ export function createMemoryHost(options: MemoryHostOptions = {}): MemoryHost {
 
   function copy(draft: CloudDraft): CloudDraft {
     return cloneJson(draft as unknown as JsonObject) as unknown as CloudDraft;
+  }
+
+  let verification = options.verification ? { ...options.verification } : undefined;
+  let apiKey: { state: ApiKeyState; masked: string | null } = { state: 'none', masked: null };
+  const issuedRequests = new Set<string>();
+
+  function randomApiKey(): string {
+    const bytes = globalThis.crypto.getRandomValues(new Uint8Array(24));
+    return `tl_${[...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  function verificationStatus(): VerificationStatus {
+    const current = verification!;
+    const domains = normalizeDomainList(current.verifiedDomains);
+    const approved = current.kyc === 'approved';
+    return {
+      kyc: current.kyc,
+      membershipActive: current.membershipActive,
+      verifiedDomains: domains,
+      hostedScriptUrl: published && current.accountId ? (hostedSchemaScriptUrl(current.accountId) ?? null) : null,
+      certificateUrl: approved && domains[0] ? (certStatusUrl(domains[0]) ?? null) : null,
+      apiKey: { ...apiKey },
+    };
   }
 
   function pinned(id: string, revision: number): CloudDraft {
@@ -138,6 +193,40 @@ export function createMemoryHost(options: MemoryHostOptions = {}): MemoryHost {
           },
         }
       : {}),
+    ...(verification
+      ? {
+          async getVerification() {
+            requireAccount();
+            return verificationStatus();
+          },
+          async verificationUrl() {
+            return verification!.kycUrl ?? '/kyc/';
+          },
+          async issueApiKey(input: IssueApiKeyInput): Promise<IssuedApiKey> {
+            requireAccount();
+            // A replay must not reveal the key again: the host keeps only a hash (here, only the mask).
+            if (issuedRequests.has(input.idempotencyKey)) throw new CloudError('conflict', 'This key was already issued. Rotate it if it was not saved.');
+            if (verification!.kyc !== 'approved') throw new CloudError('forbidden', 'Complete KYC on TrueLink before issuing an API key.');
+            if (!verification!.membershipActive) throw new CloudError('forbidden', 'The Verified Schema API needs an active TrueLink membership.');
+            if (input.operation === 'provision' && apiKey.state === 'active') throw new CloudError('invalid', 'An API key is already active; rotate it instead.');
+            if (input.operation === 'rotate' && apiKey.state !== 'active') throw new CloudError('invalid', 'There is no active API key to rotate.');
+            issuedRequests.add(input.idempotencyKey);
+            const key = (verification!.makeApiKey ?? randomApiKey)();
+            apiKey = { state: 'active', masked: maskApiKey(key) };
+            return { apiKey: key, masked: maskApiKey(key) };
+          },
+          async revokeApiKey() {
+            requireAccount();
+            if (apiKey.state === 'active') apiKey = { state: 'revoked', masked: apiKey.masked };
+          },
+        }
+      : {}),
+    setVerification(patch) {
+      if (!verification) throw new Error('This memory host was created without verification.');
+      // As on the platform, a lapsed KYC or membership does not revoke the key: the keyed API
+      // refuses requests until both are active again, and the status shows why.
+      verification = { ...verification, ...patch };
+    },
     signIn(next) {
       account = { ...next };
     },

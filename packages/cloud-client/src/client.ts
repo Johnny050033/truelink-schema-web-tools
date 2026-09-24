@@ -7,10 +7,13 @@ import {
   parseAccount,
   parseDraft,
   parseDraftList,
+  parseIssuedApiKey,
   parsePublished,
   parsePublishResult,
   parseScore,
   parseSignInUrl,
+  parseVerification,
+  parseVerificationUrl,
   isChangeScope,
   readMessage,
   type ChangeScope,
@@ -18,11 +21,14 @@ import {
   type DeleteDraftInput,
   type HostAccount,
   type HostMethod,
+  type IssueApiKeyInput,
+  type IssuedApiKey,
   type OfficialScore,
   type PublishedSchema,
   type PublishInput,
   type PublishResult,
   type SaveDraftInput,
+  type VerificationStatus,
 } from './protocol.js';
 import type { Transport } from './transport.js';
 
@@ -48,6 +54,13 @@ export interface HostClient {
   getPublished(): Promise<PublishedSchema | null>;
   publish(input: PublishInput): Promise<PublishResult>;
   score(record: SchemaDocumentRecord): Promise<OfficialScore>;
+  /** Verified Schema: KYC state, verified domains, hosted script and API key state (never the key). */
+  getVerification(): Promise<VerificationStatus>;
+  /** TrueLink's KYC page on the host origin; identity documents are uploaded there. */
+  verificationUrl(): Promise<string>;
+  /** Issues or rotates the keyed-API credential. The returned key is shown once and must not be stored. */
+  issueApiKey(input: IssueApiKeyInput): Promise<IssuedApiKey>;
+  revokeApiKey(): Promise<void>;
   /** Called when the host reports a sign-in or sign-out. */
   onAccountChange(listener: (account: HostAccount | null) => void): () => void;
   /** Called when drafts or the published schema changed on the host (another tool, tab or device). */
@@ -171,6 +184,10 @@ export function createHostClient(transport: Transport, options: HostClientOption
     getPublished: () => call('published.get', {}, parsePublished),
     publish: (input) => call('publish', input, parsePublishResult),
     score: (record) => call('score', { record }, parseScore),
+    getVerification: () => call('verification.get', {}, parseVerification),
+    verificationUrl: () => call('verification.startUrl', {}, (value) => parseVerificationUrl(value, options.hostOrigin)),
+    issueApiKey: (input) => call('apiKey.issue', input, parseIssuedApiKey),
+    revokeApiKey: () => call('apiKey.revoke', { confirmed: true }, () => undefined),
     onAccountChange(listener) {
       accountListeners.add(listener);
       return () => accountListeners.delete(listener);

@@ -40,7 +40,7 @@ Every message is plain data: `{ channel: 'truelink.host', version: 1, kind, … 
 | `request` | client → host | `id`, `method`, `params` |
 | `response` | host → client | `id`, then `ok: true, result` or `ok: false, error: { code, message, current? }` |
 | `account` | host → client | `account`: the new account (or `null`) after a sign-in or sign-out |
-| `changed` | host → client | `scope`: `drafts` or `published` changed (another TrueLink tool, tab or device) |
+| `changed` | host → client | `scope`: `drafts`, `published` or `verification` changed (another TrueLink tool, tab or device, a KYC decision, a key rotation) |
 
 | Method | Params | Result |
 | --- | --- | --- |
@@ -52,6 +52,13 @@ Every message is plain data: `{ channel: 'truelink.host', version: 1, kind, … 
 | `published.get` | none | `{ storeObj, publishedAt, officialScore }` or `null` |
 | `publish` | `{ mainId, mainRevision, faqId, faqRevision, idempotencyKey, confirmed: true }` | `{ publishedAt, officialScore }` |
 | `score` (optional) | `{ record }` | `{ score, grade }` computed by the server, nothing saved |
+| `verification.get` (optional) | none | `{ kyc, membershipActive, verifiedDomains, hostedScriptUrl, certificateUrl, apiKey: { state, masked } }`, never the key itself |
+| `verification.startUrl` (optional) | none | TrueLink's KYC page, **on the host origin** (identity documents are uploaded there, never through the bridge) |
+| `apiKey.issue` (optional) | `{ operation: 'provision' \| 'rotate', idempotencyKey, confirmed: true }` | `{ apiKey, masked }`: the key is shown once and the client must not store it |
+| `apiKey.revoke` (optional) | `{ confirmed: true }` | `null` |
+
+The Verified Schema methods expose TrueLink's KYC-bound schema delivery: see
+[docs/VERIFIED_SCHEMA_API.md](../../docs/VERIFIED_SCHEMA_API.md).
 
 Error codes: `signed-out`, `conflict`, `not-found`, `quota`, `invalid`, `forbidden`,
 `rate-limited`, `unavailable`, `timeout`, `protocol`.
@@ -82,7 +89,13 @@ the acceptance list.
 8. **Announce changes.** When drafts or the published schema change anywhere (the TrueLink
    web tool, another tab or device), call `server.notifyChanged(scope)` so open clients
    refresh. Schema Studio then updates linked documents that have no local edits.
-9. **Move versions together.** Pass `serveHost(…, { minCoreVersion })` when TrueLink
+9. **Verified Schema (when offered).**
+   - Keys are issued only with approved KYC and an active membership.
+   - A replayed issue request never reveals the key again; answer it with `conflict`.
+   - Store only a hash of each key.
+   - A lapsed KYC or membership pauses the keyed API; it doesn't delete the key.
+   - Call `notifyChanged('verification')` after KYC decisions, domain changes and key changes.
+10. **Move versions together.** Pass `serveHost(…, { minCoreVersion })` when TrueLink
    upgrades `truelink-schema-document`; older clients are asked to reload before syncing.
 
 ## Minimal host page

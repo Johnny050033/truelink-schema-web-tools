@@ -68,3 +68,21 @@ export {
   toLegacyStoreObj,
 } from './contract.js';
 export type { LegacyErrorCode, LegacyExportResult, LegacyImportResult, LegacyStoreObj, RecordErrorCode, RecordResult, SchemaDocumentRecord } from './contract.js';
+export {
+  API_KEY_HEADER,
+  API_KEY_PATTERN,
+  certStatusUrl,
+  domainCoverage,
+  hostedSchemaEmbed,
+  hostedSchemaScriptUrl,
+  isAllowedHost,
+  isApiKey,
+  maskApiKey,
+  MAX_VERIFIED_DOMAINS,
+  normalizeDomain,
+  normalizeDomainList,
+  TRUELINK_ORIGIN,
+  VERIFIED_PATHS,
+  verifiedEntitiesUrl,
+} from './verification.js';
+export type { AllowedHostOptions, DomainCoverage } from './verification.js';

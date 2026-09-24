@@ -5,7 +5,9 @@ import {
   HOST_METHODS,
   isHostMethod,
   parseDeleteInput,
+  parseIssueApiKeyInput,
   parsePublishInput,
+  parseRevokeApiKeyInput,
   parseSaveInput,
   parseScoreInput,
   readMessage,
@@ -20,8 +22,9 @@ export interface HostServer {
   /** Tells the client that the signed-in account changed (sign-in, sign-out, switch). */
   notifyAccount(account: HostAccount | null): void;
   /**
-   * Tells the client that drafts or the published schema changed, for example after a save
-   * in the TrueLink web tool or on another device, so it can refresh right away.
+   * Tells the client that drafts, the published schema or the verification status changed,
+   * for example after a save in the TrueLink web tool, a KYC decision or a key rotation on
+   * another device, so it can refresh right away.
    */
   notifyChanged(scope: ChangeScope): void;
   close(): void;
@@ -38,7 +41,17 @@ export interface ServeHostOptions {
  * generic message, so internal details never reach the client.
  */
 export function serveHost(implementation: HostImplementation, transport: Transport, options: ServeHostOptions = {}): HostServer {
-  const methods: HostMethod[] = HOST_METHODS.filter((method) => method !== 'score' || typeof implementation.score === 'function');
+  const optional: Partial<Record<HostMethod, unknown>> = {
+    score: implementation.score,
+    'verification.get': implementation.getVerification,
+    'verification.startUrl': implementation.verificationUrl,
+    'apiKey.issue': implementation.issueApiKey,
+    'apiKey.revoke': implementation.revokeApiKey,
+  };
+  const methods: HostMethod[] = HOST_METHODS.filter((method) => !(method in optional) || typeof optional[method] === 'function');
+  const unavailable = (): never => {
+    throw new CloudError('unavailable', 'Verified Schema is not available on this host.');
+  };
 
   const handlers: Record<HostMethod, (params: unknown) => Promise<unknown>> = {
     'account.get': async (params) => {
@@ -66,6 +79,21 @@ export function serveHost(implementation: HostImplementation, transport: Transpo
     score: async (params) => {
       if (!implementation.score) throw new CloudError('unavailable', 'Scoring is not available.');
       return implementation.score(parseScoreInput(params));
+    },
+    'verification.get': async (params) => {
+      assertNoParams(params);
+      return implementation.getVerification ? implementation.getVerification() : unavailable();
+    },
+    'verification.startUrl': async (params) => {
+      assertNoParams(params);
+      return implementation.verificationUrl ? implementation.verificationUrl() : unavailable();
+    },
+    'apiKey.issue': async (params) => (implementation.issueApiKey ? implementation.issueApiKey(parseIssueApiKeyInput(params)) : unavailable()),
+    'apiKey.revoke': async (params) => {
+      parseRevokeApiKeyInput(params);
+      if (!implementation.revokeApiKey) return unavailable();
+      await implementation.revokeApiKey();
+      return null;
     },
   };
 

@@ -38,6 +38,8 @@ export const TRUELINK_LINKS = {
     en: httpsOr(env.VITE_TRUELINK_APP_URL, 'https://truelink-group.com/en/'),
   },
   eeatGuide: 'https://www.truelink-group.com/en/eeat-guide/',
+  /** TrueLink's KYC page (company, expert or individual verification). */
+  kyc: httpsOr(env.VITE_TRUELINK_KYC_URL, 'https://app.truelink-group.com/kyc/'),
   source: 'https://github.com/Johnny050033/truelink-schema-web-tools',
 } as const satisfies Record<string, string | PerLocale>;
 
@@ -60,8 +62,10 @@ export const COMMUNITY_LINKS = {
   bug: `${REPOSITORY}/issues/new?template=bug_report.yml`,
   idea: `${REPOSITORY}/issues/new?template=feature_request.yml`,
   translate: `${REPOSITORY}/blob/main/CONTRIBUTING.md#translations`,
+  /** Chinese interfaces open the Traditional Chinese guide; everything else, the English one. */
+  verifiedDocs: { en: `${REPOSITORY}/blob/main/docs/VERIFIED_SCHEMA_API.md`, 'zh-TW': `${REPOSITORY}/blob/main/docs/VERIFIED_SCHEMA_API.zh-TW.md` },
   star: REPOSITORY,
-} as const;
+} as const satisfies Record<string, string | PerLocale>;
 
 /**
  * Same-origin path of the TrueLink host page that bridges cloud drafts (for example
