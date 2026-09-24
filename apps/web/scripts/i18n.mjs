@@ -25,15 +25,25 @@ export function readMessages(locale) {
   }
 }
 
+/** Optional plural forms (`key.one` …): used for a count in that CLDR category, never required. */
+export const PLURAL_VARIANT = /\.(zero|one|two|few|many)$/;
+
+const baseKey = (key) => key.replace(PLURAL_VARIANT, '');
+
 /** Source entries for a translation locale: zh-CN translates the Traditional Chinese text. */
 export function messageSources(locale) {
   const en = readMessages('en');
   const zh = readMessages('zh-TW');
   const errors = [];
-  for (const key of Object.keys(en)) if (typeof zh[key] !== 'string') errors.push(`zh-TW: missing ${key}`);
+  for (const key of Object.keys(en)) if (!PLURAL_VARIANT.test(key) && typeof zh[key] !== 'string') errors.push(`zh-TW: missing ${key}`);
   for (const key of Object.keys(zh)) if (!Object.hasOwn(en, key)) errors.push(`zh-TW: unknown key ${key}`);
   if (errors.length) throw new Error(errors.join('\n'));
-  return Object.fromEntries(Object.keys(en).map((key) => [key, locale === 'zh-CN' ? sourceEntry(zh[key], [en[key]]) : sourceEntry(en[key], [zh[key]])]));
+  return Object.fromEntries(
+    Object.keys(en).map((key) => {
+      const chinese = zh[key] ?? zh[baseKey(key)];
+      return [key, locale === 'zh-CN' ? sourceEntry(chinese, [en[key]]) : sourceEntry(en[key], [chinese])];
+    }),
+  );
 }
 
 function main() {
@@ -59,8 +69,9 @@ function main() {
       if (check) errors.push(`${locale}: unknown keys ${result.unknown.join(', ')} (run: pnpm --filter truelink-schema-studio i18n)`);
       else console.log(`removed from ${locale}: ${result.unknown.join(', ')}`);
     }
-    const total = Object.keys(sources).length;
-    const done = total - result.missing.length;
+    const missing = result.missing.filter((key) => !PLURAL_VARIANT.test(key));
+    const total = Object.keys(sources).filter((key) => !PLURAL_VARIANT.test(key)).length;
+    const done = total - missing.length;
     coverage.push(`${locale} ${Math.floor((done / total) * 100)}% (${done}/${total})`);
     const content = serialize(tidy(sources, catalog));
     const path = join(MESSAGES_DIR, `${locale}.json`);

@@ -69,6 +69,9 @@ facts and official profiles. It is the "what machines can read about you" previe
     except `zh-CN`, which is keyed by the Traditional Chinese text.
   - Studio catalogs (`apps/web/src/i18n/locales/`) are keyed by message id.
   - A missing translation falls back to English, or to Traditional Chinese for `zh-CN`.
+  - Studio messages with a count can add plural forms (`key.one` …), picked with
+    `Intl.PluralRules`.
+  - East Asian address order is used only for addresses written in CJK script.
 - **Loading:** the Studio bundles English and Traditional Chinese. Other locales download
   on first use, and before the first render when saved as the preference.
 - **Guarantees, enforced by `pnpm check`:**

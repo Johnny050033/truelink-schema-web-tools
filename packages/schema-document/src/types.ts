@@ -71,8 +71,8 @@ export interface ScalarField {
   readonly visibleWhen?: VisibleWhen;
   /** Benefit shown when a recommended field is missing. */
   readonly why?: LocalizedText;
-  /** When this field is first filled and `path` is empty, the editor may fill `value`. */
-  readonly companion?: { readonly path: readonly string[]; readonly value: string };
+  /** When this field is first filled and `path` is empty, the editor fills `value` (computed from the document and interface language when a function). */
+  readonly companion?: { readonly path: readonly string[]; readonly value: string | ((node: JsonObject, locale?: Locale) => string) };
   /** Suggests a value (for example an `@id` derived from the site URL). */
   readonly suggest?: (node: JsonObject) => string | undefined;
 }

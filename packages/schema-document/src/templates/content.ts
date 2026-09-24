@@ -314,7 +314,7 @@ export const breadcrumb: SchemaTemplate = {
     return issues;
   },
   learnMore: [
-    { label: t('TrueLink 部落格：BreadcrumbList 餵 AI 導覽脈絡', 'TrueLink blog: BreadcrumbList gives AI navigation context'), url: 'https://truelink-group.com/blog/breadcrumblist-ai/', publisher: 'truelink', lang: 'zh-TW' },
+    { label: t('TrueLink 部落格：BreadcrumbList 餵 AI 導覽脈絡', 'TrueLink blog: BreadcrumbList gives AI navigation context (in Chinese)'), url: 'https://truelink-group.com/blog/breadcrumblist-ai/', publisher: 'truelink', lang: 'zh-TW' },
     googleLink('structured-data/breadcrumb', '麵包屑（BreadcrumbList）', 'Breadcrumb'),
     schemaOrgLink('BreadcrumbList'),
   ],

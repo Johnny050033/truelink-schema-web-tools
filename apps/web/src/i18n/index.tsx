@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { fallbackLocale, isSourceLocale, localize, type Locale, type LocalizedText } from 'truelink-schema-document';
+import { fallbackLocale, isSourceLocale, LOCALE_INFO, localize, type Locale, type LocalizedText } from 'truelink-schema-document';
 import { ensureLocale, isLocaleReady, translatedMessage } from './locales';
-import { sourceMessages, type MessageKey } from './messages';
+import { sourceMessages, type BaseKey, type MessageKey } from './messages';
 
-export type { MessageKey };
+export type { BaseKey as MessageKey };
 export { ensureLocale, isLocaleReady };
 
 type Params = Record<string, string | number>;
@@ -13,8 +13,35 @@ export function formatMessage(template: string, params?: Params): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => (key in params ? String(params[key]) : match));
 }
 
-export function translate(locale: Locale, key: MessageKey, params?: Params): string {
-  const text = isSourceLocale(locale) ? sourceMessages[locale][key] : (translatedMessage(locale, key) ?? sourceMessages[fallbackLocale(locale)][key]);
+const pluralRules = new Map<Locale, Intl.PluralRules>();
+
+function pluralCategory(locale: Locale, count: number): Intl.LDMLPluralRule {
+  let rules = pluralRules.get(locale);
+  if (!rules) {
+    rules = new Intl.PluralRules(LOCALE_INFO[locale].htmlLang);
+    pluralRules.set(locale, rules);
+  }
+  return rules.select(count);
+}
+
+/** A message in one language only (no fallback). */
+function ownMessage(locale: Locale, key: MessageKey): string | undefined {
+  return isSourceLocale(locale) ? (sourceMessages[locale] as Readonly<Partial<Record<MessageKey, string>>>)[key] : translatedMessage(locale, key);
+}
+
+/**
+ * Looks up a message, preferring a plural form (`key.one` …) when `count` selects one, then the
+ * language's own base message, then the fallback language's.
+ */
+export function translate(locale: Locale, key: BaseKey, params?: Params): string {
+  const count = params?.['count'];
+  const variant = typeof count === 'number' ? (`${key}.${pluralCategory(locale, count)}` as MessageKey) : undefined;
+  const fallback = fallbackLocale(locale);
+  const text =
+    (variant && ownMessage(locale, variant)) ||
+    ownMessage(locale, key) ||
+    (variant && ownMessage(fallback, variant)) ||
+    sourceMessages[fallback][key];
   return formatMessage(text, params);
 }
 
@@ -73,7 +100,7 @@ export function useReadyLocale(preferred: Locale): Locale {
 
 export interface I18n {
   readonly locale: Locale;
-  readonly t: (key: MessageKey, params?: Params) => string;
+  readonly t: (key: BaseKey, params?: Params) => string;
   /** Picks the current language from template copy. */
   readonly l: (text: LocalizedText) => string;
   readonly relativeTime: (timestamp: number) => string;

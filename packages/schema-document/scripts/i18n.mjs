@@ -262,8 +262,11 @@ export function extract(directory = SOURCE_DIR) {
       const zh = zhArg[0].value;
       const en = enArg[0].value;
       if (zh === en) return;
-      const shared = sourceEntry(en, [zh]);
-      if (shared.allowed.length !== shared.required.length && !slotsOf(en).some((slot) => ENGLISH_ONLY_SLOT.test(slot))) problems.push(`${where}: the Chinese and English texts must use the same {slots}`);
+      // The Chinese text may leave out slots (for example a piece that is empty in its branch) and may
+      // use {label} where English uses {aLabel}; any other slot must exist in the English text.
+      const english = slotsOf(en);
+      const unknown = slotsOf(zh).filter((slot) => !english.includes(slot) && !english.includes(`a${slot[0].toUpperCase()}${slot.slice(1)}`));
+      if (unknown.length) problems.push(`${where}: the Chinese text uses {${unknown.join('}, {')}}, which the English text does not`);
       const existing = entries.get(en);
       if (existing) {
         existing.where.push(where);

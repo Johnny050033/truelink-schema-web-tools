@@ -111,7 +111,7 @@ const messages: Record<ImportIssueCode, LocalizedText> = {
   non_schema_context: t('@context 不是 https://schema.org；資料會原樣保留，但請確認來源。', '@context is not https://schema.org; data is kept as-is, but check its origin.'),
   legacy_store: t(
     '已辨識為 TrueLink 網頁工具儲存的資料：主要實體與常見問答會分成兩份文件；網域白名單是部署設定，不會匯入。',
-    'Recognised as data saved by the TrueLink web tool: the main entity and FAQ become separate documents; the domain whitelist is a deployment setting and is not imported.',
+    'Recognized as data saved by the TrueLink web tool: the main entity and FAQ become separate documents; the domain whitelist is a deployment setting and is not imported.',
   ),
 };
 

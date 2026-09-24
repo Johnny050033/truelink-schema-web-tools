@@ -11,6 +11,7 @@
   "nav.brand": "品牌資料",
   "nav.transfer": "匯入與匯出",
   "nav.account": "帳號與同步",
+  "nav.accountShort": "帳號",
   "nav.settings": "設定",
   "nav.skip": "跳到主要內容",
   "nav.localMode": "本機模式 · 資料不離開此裝置",

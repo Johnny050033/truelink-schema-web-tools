@@ -140,7 +140,8 @@ function BottomNav({ route }: { route: Route }) {
     NAV[1]!,
     { route: { name: 'templates' }, label: 'nav.create', icon: 'plus', primary: true },
     NAV[2]!,
-    NAV[4]!,
+    // The bottom bar has a fifth of a phone screen per item, so the account entry uses its short name.
+    { ...NAV[4]!, label: 'nav.accountShort' },
   ];
   return (
     <nav className="bottom-nav" aria-label={t('nav.label')}>

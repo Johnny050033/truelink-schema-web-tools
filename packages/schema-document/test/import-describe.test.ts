@@ -1,16 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  classifyProfile,
-  describeDocument,
-  getTemplate,
-  LIMITS,
-  parseJsonLdText,
-  parseJsonLdTexts,
-  readField,
-  summarizeHours,
-  writeField,
-  type ScalarField,
-} from '../src/index.js';
+import { classifyProfile, describeDocument, formatAddress, getTemplate, LIMITS, parseJsonLdText, parseJsonLdTexts, readField, summarizeHours, templateFields, writeField, type ScalarField } from '../src/index.js';
 
 describe('JSON-LD import', () => {
   it('splits @graph nodes, inherits context and picks templates', () => {
@@ -102,6 +91,32 @@ describe('describeDocument', () => {
     expect(description.sentences[0]).toBe('「Synthetic Workshop」將於 2026/10/01 19:00 在Demo Hall舉行，由Demo Org主辦。');
   });
 
+  it('reads well in every combination of optional parts', () => {
+    const article = getTemplate('article');
+    expect(describeDocument(article, { '@type': 'Article', headline: '示範文章', author: { name: '王小明' } }, 'zh-TW').sentences[0]).toBe('「示範文章」是一篇由王小明撰寫的文章。');
+    expect(describeDocument(article, { '@type': 'Article', headline: '示範文章', author: { name: '王小明' }, publisher: { name: '晨光' } }, 'zh-TW').sentences[0]).toBe('「示範文章」是一篇由王小明撰寫、晨光發布的文章。');
+    const service = getTemplate('service');
+    expect(describeDocument(service, { '@type': 'Service', name: '示範顧問' }, 'zh-TW').sentences[0]).toBe('「示範顧問」是一項服務。');
+    expect(describeDocument(service, { '@type': 'Service', name: 'Demo Advice' }, 'en').sentences[0]).toBe('Demo Advice is a service.');
+    const faq = getTemplate('faq');
+    const one = { '@type': 'FAQPage', mainEntity: [{ '@type': 'Question', name: 'Do you deliver?', acceptedAnswer: { '@type': 'Answer', text: 'Yes.' } }] };
+    expect(describeDocument(faq, one, 'en').sentences[0]).toBe('This page answers 1 question: "Do you deliver?".');
+  });
+
+  it('keeps raw type names and acronyms, and names the generic type plainly', () => {
+    const thing = getTemplate('thing');
+    expect(describeDocument(thing, { '@type': 'Thing', name: 'Widget' }, 'en').sentences[0]).toBe('Widget is a general Schema.org item (Thing).');
+    expect(describeDocument(thing, { '@type': 'MusicEvent', name: 'Jam' }, 'en').sentences[0]).toBe('Jam is of type MusicEvent.');
+    expect(describeDocument(getTemplate('organization'), { '@type': 'NGO', name: 'Aid' }, 'en').sentences[0]).toBe('Aid is an NGO.');
+  });
+
+  it('keeps Western address order for Latin-script addresses in Chinese and Japanese', () => {
+    const node = { address: { '@type': 'PostalAddress', streetAddress: '12 Harbor Street', addressLocality: 'Portland', addressRegion: 'OR' } };
+    expect(formatAddress(node, ['address'], 'ja')).toBe('12 Harbor Street, Portland, OR');
+    expect(formatAddress(node, ['address'], 'zh-TW', false)).toBe('Portland, OR');
+    expect(formatAddress({ address: { addressLocality: '大安區', addressRegion: '臺北市' } }, ['address'], 'zh-TW')).toBe('臺北市大安區');
+  });
+
   it('classifies common profile hosts', () => {
     expect(classifyProfile('https://www.instagram.com/example')).toBe('instagram');
     expect(classifyProfile('https://m.facebook.com/example')).toBe('facebook');
@@ -117,8 +132,13 @@ describe('form field helpers', () => {
   const price = template.sections[1]!.fields[0] as ScalarField;
 
   it('fills a companion currency the first time a price is entered', () => {
-    const data = writeField({ '@type': 'Product' }, price, '1200', template.nodeTypes);
+    const data = writeField({ '@type': 'Product' }, price, '1200', template.nodeTypes, 'zh-TW');
     expect(data).toEqual({ '@type': 'Product', offers: { '@type': 'Offer', price: '1200', priceCurrency: 'TWD' } });
+    expect(writeField({ '@type': 'Product' }, price, '10', template.nodeTypes)).toMatchObject({ offers: { priceCurrency: 'USD' } });
+    expect(writeField({ '@type': 'Product' }, price, '10', template.nodeTypes, 'id')).toMatchObject({ offers: { priceCurrency: 'IDR' } });
+    const event = getTemplate('event');
+    const ticket = templateFields(event).map((entry) => entry.field).find((item): item is ScalarField => item.id === 'offers.price')!;
+    expect(writeField({ '@type': 'Event', location: { '@type': 'Place', address: { '@type': 'PostalAddress', addressCountry: 'mx' } } }, ticket, '250', event.nodeTypes, 'en')).toMatchObject({ offers: { priceCurrency: 'MXN' } });
     const usd = writeField({ offers: { '@type': 'Offer', priceCurrency: 'USD' } }, price, '10', template.nodeTypes);
     expect(usd).toMatchObject({ offers: { priceCurrency: 'USD' } });
   });

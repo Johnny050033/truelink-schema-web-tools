@@ -239,7 +239,7 @@ export const localBusiness: SchemaTemplate = {
     return issues;
   },
   learnMore: [
-    { label: t('TrueLink 部落格：BreadcrumbList 與 LocalBusiness 如何讓生成式引擎看見你的坐標', 'TrueLink blog: how BreadcrumbList and LocalBusiness help generative engines locate you'), url: 'https://truelink-group.com/blog/ai-breadcrumblist-localbusiness/', publisher: 'truelink', lang: 'zh-TW' },
+    { label: t('TrueLink 部落格：BreadcrumbList 與 LocalBusiness 如何讓生成式引擎看見你的坐標', 'TrueLink blog: how BreadcrumbList and LocalBusiness help generative engines locate you (in Chinese)'), url: 'https://truelink-group.com/blog/ai-breadcrumblist-localbusiness/', publisher: 'truelink', lang: 'zh-TW' },
     googleLink('structured-data/local-business', '地方商家（LocalBusiness）', 'Local business'),
     schemaOrgLink('LocalBusiness'),
   ],

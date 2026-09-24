@@ -201,7 +201,10 @@ function evaluateList(field: ListField, node: JsonObject, issues: AuditIssue[]):
   const minimum = field.minItems ?? 1;
   if (objects.length < minimum) {
     const label = quote(field.label);
-    issues.push(issue('warning', 'too_few_items', fmt('{label}至少需要 {min} 項。', '{label} needs at least {min} items.', { label, min: minimum }), { fieldId: field.id, path: [...field.path] }));
+    const message = minimum === 1
+      ? fmt('{label}至少需要 {min} 項。', '{label} needs at least {min} item.', { label, min: minimum })
+      : fmt('{label}至少需要 {min} 項。', '{label} needs at least {min} items.', { label, min: minimum });
+    issues.push(issue('warning', 'too_few_items', message, { fieldId: field.id, path: [...field.path] }));
     return 'invalid';
   }
   return broken ? 'invalid' : 'filled';

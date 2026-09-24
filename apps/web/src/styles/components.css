@@ -47,6 +47,17 @@
   font-size: var(--fs-base);
 }
 
+/* Long labels (Spanish, Portuguese, Indonesian …) wrap on phones instead of widening the page. */
+@media (max-width: 767px) {
+  .btn {
+    max-width: 100%;
+    min-width: 0;
+    padding-block: 6px;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
 .btn-block {
   width: 100%;
 }

@@ -6,7 +6,7 @@ import { CodeBlock } from '../src/components/CodeBlock';
 import { AiDescription, EntityCard, SearchPreview } from '../src/features/editor/Previews';
 import { clearHiddenFields } from '../src/features/editor/FormView';
 import { formatMessage } from '../src/i18n';
-import { sourceMessages as messages, type MessageKey } from '../src/i18n/messages';
+import { sourceMessages as messages } from '../src/i18n/messages';
 import { hrefFor, parseHash } from '../src/lib/router';
 
 const attack = '<img src=x onerror="alert(1)"><script>alert(2)</script>';
@@ -63,9 +63,13 @@ describe('routing', () => {
 describe('interface copy', () => {
   it('has matching placeholders in both languages', () => {
     const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
-    for (const key of Object.keys(messages.en) as MessageKey[]) {
-      expect(placeholders(messages.en[key]), key).toEqual(placeholders(messages['zh-TW'][key]));
-      expect(messages.en[key].trim().length, key).toBeGreaterThan(0);
+    const en: Readonly<Record<string, string>> = messages.en;
+    const zh: Readonly<Record<string, string>> = messages['zh-TW'];
+    for (const key of Object.keys(en)) {
+      // Plural forms (key.one) keep the placeholders of their base message.
+      const base = key.replace(/\.(zero|one|two|few|many)$/, '');
+      expect(placeholders(en[key]!), key).toEqual(placeholders(zh[base]!));
+      expect(en[key]!.trim().length, key).toBeGreaterThan(0);
     }
   });
 

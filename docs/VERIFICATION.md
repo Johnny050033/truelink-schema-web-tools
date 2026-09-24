@@ -81,3 +81,55 @@ headless Chromium (Playwright 1.56 browser build 1194) on Linux.
 Not verified: a real TrueLink host page, backend functions, database rules or deployment
 (not implemented in this repository); GitHub Actions workflows (added, not yet run on
 GitHub); Safari, Firefox and real mobile devices; screen-reader passes.
+
+# Seven languages and the GitHub community pack — 2026-09-24 (third pass)
+
+Scope:
+- Localization of the shared core (0.3.0) and Schema Studio into English, Traditional
+  Chinese, Simplified Chinese, Japanese, Spanish, Brazilian Portuguese and Indonesian.
+- English-first defaults and language detection.
+- Source fixes reported by the translators.
+- The GitHub community files and the Pages workflow.
+
+No TrueLink backend was changed.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm check` (core + all workspaces) | PASS |
+| Core library tests / built-entry smoke | 67/67; 4/4 |
+| `truelink-schema-document` tests | 112/112 |
+| &nbsp;&nbsp;↳ extraction | no text built outside the catalog helpers |
+| &nbsp;&nbsp;↳ coverage | every template label, check message and description sentence resolves through a catalog |
+| &nbsp;&nbsp;↳ catalogs | all catalogs valid; translated output has no unfilled slots |
+| Core catalogs | 525 English source texts; zh-CN 530/530 (keyed by Traditional Chinese), ja, es, pt-BR and id 525/525 |
+| Studio catalogs | 427 messages plus 11 optional plural forms; every locale 427/427 |
+| Bundle smoke of the shared core | 6/6, including translation through `registerCatalog` in a bare VM |
+| `truelink-schema-cloud` tests / bundle smoke | 19/19; 3/3 |
+| `apps/web` tests | 51/51 |
+| &nbsp;&nbsp;↳ locale | locale detection; pre-render `lang` script in step with `LOCALE_INFO` |
+| &nbsp;&nbsp;↳ loading | lazy loading with fallback |
+| &nbsp;&nbsp;↳ plurals | plural forms |
+| &nbsp;&nbsp;↳ links | localized Google documentation links |
+| zh-TW / English output vs 0.2.0 (before the fixes below) | byte-identical over 10,560 generated describe and audit cases, except capitalising "Official profiles on …" |
+| Intentional output changes after translator review | see the list below |
+| Layout QA: 7 languages × desktop 1440 px and mobile 390 px × 8 screens, headless Chromium | no horizontal scrolling, clipped or off-screen controls, unfilled `{slots}` or console errors; `<html lang>` matches the language |
+| &nbsp;&nbsp;↳ fixes from the first run | long button labels now wrap on phones; the bottom bar uses a short account label and fixed columns; page grids no longer grow to fit wide tables |
+
+Intentional output changes after translator review:
+
+- zh-TW article sentences with an author but no publisher, and service sentences without a
+  provider, now read as complete sentences.
+- One-question FAQs no longer say "such as".
+- The generic template names itself "a general Schema.org item (Thing)".
+- Raw type names (MusicEvent) and acronyms (an NGO) keep their spelling.
+- Latin-script addresses keep Western order in Chinese and Japanese.
+- The default currency follows the document's country, then the interface language.
+- 16 countries and 14 currencies were added.
+
+Not verified:
+
+- Native-speaker review of the five translated languages. They are labelled Beta in the
+  app.
+- The Pages deployment. The workflow runs after merge, once Pages is enabled with the
+  GitHub Actions source.
+- Safari, Firefox, real mobile devices and screen readers.

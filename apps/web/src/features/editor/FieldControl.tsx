@@ -225,7 +225,7 @@ export function FieldShell({ label, importance, help, htmlFor, helpId, errorId, 
 }
 
 export function FieldControl({ field, node, root, nodeTypes, onChange, issues, domId, showIssues, onTouched, onEditJson, wide }: FieldControlProps) {
-  const { t, l } = useI18n();
+  const { t, l, locale } = useI18n();
   const inputId = useId();
   const helpId = `${inputId}-help`;
   const errorId = `${inputId}-issue`;
@@ -233,7 +233,7 @@ export function FieldControl({ field, node, root, nodeTypes, onChange, issues, d
   const issue = showIssues ? issues[0] : undefined;
   const describedBy = [field.help ? helpId : '', issue ? errorId : ''].filter(Boolean).join(' ') || undefined;
   const invalid = issue?.severity === 'error';
-  const write = (value: string | readonly string[]) => onChange(writeField(node, field, value, nodeTypes));
+  const write = (value: string | readonly string[]) => onChange(writeField(node, field, value, nodeTypes, locale));
   const values = state.kind === 'value' ? state.values : [];
   const single = values[0] ?? '';
   const suggestion = field.suggest && state.kind === 'empty' ? field.suggest(root) : undefined;

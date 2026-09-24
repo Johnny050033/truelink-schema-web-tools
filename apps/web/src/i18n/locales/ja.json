@@ -11,6 +11,7 @@
   "nav.brand": "ブランドプロフィール",
   "nav.transfer": "インポート／エクスポート",
   "nav.account": "アカウントと同期",
+  "nav.accountShort": "アカウント",
   "nav.settings": "設定",
   "nav.skip": "メインコンテンツへスキップ",
   "nav.localMode": "ローカルモード · データはこのデバイス内に保存",

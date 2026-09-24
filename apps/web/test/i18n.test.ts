@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
 import { getTemplate, LOCALE_INFO, LOCALES, localize, type Locale } from 'truelink-schema-document';
-import { CATALOG_LOCALES, messageSources, readMessages } from '../scripts/i18n.mjs';
+import { CATALOG_LOCALES, messageSources, PLURAL_VARIANT, readMessages } from '../scripts/i18n.mjs';
 import { checkCatalog } from '../../../packages/schema-document/scripts/i18n.mjs';
 import { createI18n, detectLocale, ensureLocale, isLocaleReady, matchLocale, translate } from '../src/i18n';
 import { sourceMessages } from '../src/i18n/messages';
@@ -40,8 +40,20 @@ describe('locale detection', () => {
 });
 
 describe('message catalogs', () => {
-  it('uses the same ids in both source languages', () => {
-    expect(Object.keys(sourceMessages['zh-TW'])).toEqual(Object.keys(sourceMessages.en));
+  it('uses the same ids in both source languages (plural forms are optional)', () => {
+    expect(Object.keys(sourceMessages['zh-TW'])).toEqual(Object.keys(sourceMessages.en).filter((key) => !PLURAL_VARIANT.test(key)));
+  });
+
+  it('picks singular forms by plural rules and falls back within the language', async () => {
+    expect(translate('en', 'common.documents', { count: 1 })).toBe('1 document');
+    expect(translate('en', 'common.documents', { count: 2 })).toBe('2 documents');
+    expect(translate('en', 'common.documents', { count: 0 })).toBe('0 documents');
+    expect(translate('zh-TW', 'common.documents', { count: 1 })).toBe(sourceMessages['zh-TW']['common.documents'].replace('{count}', '1'));
+    await ensureLocale('es');
+    await ensureLocale('ja');
+    expect(translate('es', 'common.documents', { count: 1 })).toBe(readMessages('es')?.['common.documents.one']?.replace('{count}', '1'));
+    expect(translate('es', 'field.itemCount', { count: 1 })).toBe(readMessages('es')?.['field.itemCount']?.replace('{count}', '1'));
+    expect(translate('ja', 'common.documents', { count: 1 })).toBe(readMessages('ja')?.['common.documents']?.replace('{count}', '1'));
   });
 
   it.each(CATALOG_LOCALES)('%s is valid', (locale) => {
@@ -56,11 +68,12 @@ describe('loading a translation', () => {
     expect(isLocaleReady('en')).toBe(true);
     expect(isLocaleReady('zh-TW')).toBe(true);
     expect(translate('zh-CN', 'nav.home')).toBe(sourceMessages['zh-TW']['nav.home']);
-    expect(translate('ja', 'nav.home')).toBe(sourceMessages.en['nav.home']);
-    await ensureLocale('ja');
-    expect(isLocaleReady('ja')).toBe(true);
-    const translated = readMessages('ja')?.['nav.home'];
-    expect(translate('ja', 'nav.home')).toBe(translated ?? sourceMessages.en['nav.home']);
+    expect(isLocaleReady('pt-BR')).toBe(false);
+    expect(translate('pt-BR', 'nav.home')).toBe(sourceMessages.en['nav.home']);
+    await ensureLocale('pt-BR');
+    expect(isLocaleReady('pt-BR')).toBe(true);
+    const translated = readMessages('pt-BR')?.['nav.home'];
+    expect(translate('pt-BR', 'nav.home')).toBe(translated ?? sourceMessages.en['nav.home']);
   });
 
   it('localizes template copy and dates through the shared core', async () => {

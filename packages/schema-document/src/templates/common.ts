@@ -1,7 +1,7 @@
 import { t } from '../formats.js';
 import { fmt } from '../i18n.js';
 import { getAt, isJsonObject } from '../json.js';
-import type { FieldOption, Importance, JsonObject, LearnMoreLink, ScalarField } from '../types.js';
+import type { FieldOption, Importance, JsonObject, LearnMoreLink, Locale, ScalarField } from '../types.js';
 
 type FieldOverrides = Partial<Omit<ScalarField, 'id' | 'kind' | 'path'>>;
 
@@ -182,6 +182,22 @@ export const countryOptions: readonly FieldOption[] = [
   { value: 'AU', label: t('澳洲（AU）', 'Australia (AU)') },
   { value: 'DE', label: t('德國（DE）', 'Germany (DE)') },
   { value: 'FR', label: t('法國（FR）', 'France (FR)') },
+  { value: 'ID', label: t('印尼（ID）', 'Indonesia (ID)') },
+  { value: 'PH', label: t('菲律賓（PH）', 'Philippines (PH)') },
+  { value: 'IN', label: t('印度（IN）', 'India (IN)') },
+  { value: 'AE', label: t('阿拉伯聯合大公國（AE）', 'United Arab Emirates (AE)') },
+  { value: 'NZ', label: t('紐西蘭（NZ）', 'New Zealand (NZ)') },
+  { value: 'MX', label: t('墨西哥（MX）', 'Mexico (MX)') },
+  { value: 'BR', label: t('巴西（BR）', 'Brazil (BR)') },
+  { value: 'AR', label: t('阿根廷（AR）', 'Argentina (AR)') },
+  { value: 'CO', label: t('哥倫比亞（CO）', 'Colombia (CO)') },
+  { value: 'CL', label: t('智利（CL）', 'Chile (CL)') },
+  { value: 'PE', label: t('秘魯（PE）', 'Peru (PE)') },
+  { value: 'ES', label: t('西班牙（ES）', 'Spain (ES)') },
+  { value: 'PT', label: t('葡萄牙（PT）', 'Portugal (PT)') },
+  { value: 'IT', label: t('義大利（IT）', 'Italy (IT)') },
+  { value: 'NL', label: t('荷蘭（NL）', 'Netherlands (NL)') },
+  { value: 'IE', label: t('愛爾蘭（IE）', 'Ireland (IE)') },
 ];
 
 export const currencyOptions: readonly FieldOption[] = [
@@ -196,7 +212,38 @@ export const currencyOptions: readonly FieldOption[] = [
   { value: 'EUR', label: t('歐元（EUR）', 'Euro (EUR)') },
   { value: 'GBP', label: t('英鎊（GBP）', 'Pound sterling (GBP)') },
   { value: 'AUD', label: t('澳幣（AUD）', 'Australian dollar (AUD)') },
+  { value: 'IDR', label: t('印尼盾（IDR）', 'Indonesian rupiah (IDR)') },
+  { value: 'PHP', label: t('菲律賓披索（PHP）', 'Philippine peso (PHP)') },
+  { value: 'INR', label: t('印度盧比（INR）', 'Indian rupee (INR)') },
+  { value: 'THB', label: t('泰銖（THB）', 'Thai baht (THB)') },
+  { value: 'VND', label: t('越南盾（VND）', 'Vietnamese dong (VND)') },
+  { value: 'AED', label: t('阿聯酋迪拉姆（AED）', 'UAE dirham (AED)') },
+  { value: 'CAD', label: t('加拿大幣（CAD）', 'Canadian dollar (CAD)') },
+  { value: 'NZD', label: t('紐西蘭幣（NZD）', 'New Zealand dollar (NZD)') },
+  { value: 'MXN', label: t('墨西哥披索（MXN）', 'Mexican peso (MXN)') },
+  { value: 'BRL', label: t('巴西雷亞爾（BRL）', 'Brazilian real (BRL)') },
+  { value: 'ARS', label: t('阿根廷披索（ARS）', 'Argentine peso (ARS)') },
+  { value: 'COP', label: t('哥倫比亞披索（COP）', 'Colombian peso (COP)') },
+  { value: 'CLP', label: t('智利披索（CLP）', 'Chilean peso (CLP)') },
+  { value: 'PEN', label: t('秘魯索爾（PEN）', 'Peruvian sol (PEN)') },
 ];
+
+const COUNTRY_CURRENCY: Readonly<Record<string, string>> = {
+  TW: 'TWD', HK: 'HKD', JP: 'JPY', KR: 'KRW', SG: 'SGD', MY: 'MYR', TH: 'THB', VN: 'VND', CN: 'CNY', US: 'USD', CA: 'CAD', GB: 'GBP', AU: 'AUD',
+  DE: 'EUR', FR: 'EUR', ES: 'EUR', PT: 'EUR', IT: 'EUR', NL: 'EUR', IE: 'EUR', ID: 'IDR', PH: 'PHP', IN: 'INR', AE: 'AED', NZ: 'NZD',
+  MX: 'MXN', BR: 'BRL', AR: 'ARS', CO: 'COP', CL: 'CLP', PE: 'PEN',
+};
+
+const LOCALE_CURRENCY: Readonly<Record<Locale, string>> = { en: 'USD', 'zh-TW': 'TWD', 'zh-CN': 'CNY', ja: 'JPY', es: 'USD', 'pt-BR': 'BRL', id: 'IDR' };
+
+/** Currency to suggest with a first price: the document's country, else the interface language, else USD. */
+export function defaultCurrency(node: JsonObject, locale?: Locale): string {
+  for (const path of [['address', 'addressCountry'], ['location', 'address', 'addressCountry']]) {
+    const country = getAt(node, path);
+    if (typeof country === 'string' && COUNTRY_CURRENCY[country.trim().toUpperCase()]) return COUNTRY_CURRENCY[country.trim().toUpperCase()]!;
+  }
+  return locale ? LOCALE_CURRENCY[locale] : 'USD';
+}
 
 export const languageOptions: readonly FieldOption[] = [
   { value: 'zh-TW', label: t('繁體中文（zh-TW）', 'Traditional Chinese (zh-TW)') },
@@ -241,7 +288,7 @@ export function offerFields(prefix: readonly string[], importance: Importance): 
       placeholder: t('例：1200', 'e.g. 49.99'),
       help: t('只填數字與小數點，不要包含「NT$」或逗號。', 'Digits and a decimal point only — no currency symbols or separators.'),
       why: t('明確的價格是產品與活動複合式結果常見的必要資訊。', 'A clear price is commonly required for product and event rich results.'),
-      companion: { path: [...prefix, 'priceCurrency'], value: 'TWD' },
+      companion: { path: [...prefix, 'priceCurrency'], value: defaultCurrency },
     }),
     field('priceCurrency', 'currency', ['priceCurrency'], {
       label: t('幣別', 'Currency'),

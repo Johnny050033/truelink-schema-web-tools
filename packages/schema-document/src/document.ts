@@ -70,13 +70,14 @@ export function readField(node: JsonObject, field: ScalarField): FieldValueState
   return { kind: 'complex', value };
 }
 
-/** Writes a form value; an empty string or empty list removes the property. */
-export function writeField(node: JsonObject, field: ScalarField, value: string | readonly string[], nodeTypes: Readonly<Record<string, string>>): JsonObject {
+/** Writes a form value; an empty string or empty list removes the property. `locale` picks locale-aware companion values. */
+export function writeField(node: JsonObject, field: ScalarField, value: string | readonly string[], nodeTypes: Readonly<Record<string, string>>, locale?: Locale): JsonObject {
   const next: JsonValue | undefined = Array.isArray(value) ? [...value] : (value as string);
   let updated = setAt(node, field.path, next, nodeTypes);
   const filled = Array.isArray(value) ? value.some((item) => item.trim() !== '') : String(value).trim() !== '';
   if (filled && field.companion && getAt(updated, field.companion.path) === undefined && canWriteAt(updated, field.companion.path)) {
-    updated = setAt(updated, field.companion.path, field.companion.value, nodeTypes);
+    const companion = typeof field.companion.value === 'function' ? field.companion.value(updated, locale) : field.companion.value;
+    updated = setAt(updated, field.companion.path, companion, nodeTypes);
   }
   return updated;
 }

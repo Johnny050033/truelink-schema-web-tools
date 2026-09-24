@@ -97,8 +97,12 @@ Traditional Chinese text, since it is adapted from it. `en.json` and `zh-TW.json
 
 1. Edit the value (never the key) in the JSON file.
 2. Keep every `{slot}` exactly as written. You may move slots to fit your grammar.
-   - `{aLabel}`, `{aJob}` and `{aType}` include an English article and are only for English.
-     Other languages use `{label}`, `{job}` and `{label}`.
+   - `{aLabel}` and `{aJob}` include an English article and are only for English. Other
+     languages use `{label}` and `{job}`.
+   - Studio messages with a `{count}` may have plural forms, such as `"common.documents.one"`
+     next to `"common.documents"`. They're chosen by your language's plural rules. Without them,
+     the base message is used for every number, so write it to work for any count, for example
+     `"Documents: {count}"`.
 3. Validate (the `--todo` option lists what is still untranslated):
 
    ```sh

@@ -1,6 +1,6 @@
 import { formatWallClock, t } from './formats.js';
 import { fill, isCjk, isSourceLocale, joinList, localize } from './i18n.js';
-import { getAt, isJsonObject, listAt, textOf, textsOf } from './json.js';
+import { getAt, isJsonObject, listAt, textOf, textsOf, typesOf } from './json.js';
 import { buildOutput } from './output.js';
 import { classifyProfile, platformName, type PlatformId } from './platforms.js';
 import { countryOptions, dayOptions, languageOptions } from './templates/common.js';
@@ -50,6 +50,8 @@ function part(locale: Locale, when: unknown, zh: string, en: string, vars: Vars 
 }
 
 function article(word: string): string {
+  // Acronyms are read letter by letter: "an NGO", "a URL".
+  if (/^[A-Z]{2,}/.test(word)) return /^[AEFHILMNORSX]/.test(word) ? 'an' : 'a';
   return /^[aeiou]/i.test(word) ? 'an' : 'a';
 }
 
@@ -58,9 +60,17 @@ function withArticle(word: string): string {
   return `${article(word)} ${word}`;
 }
 
-/** Type labels read as common nouns inside sentences, so Latin-script translations lower-case them. */
+/**
+ * Type labels read as common nouns inside sentences, so they are lower-cased there; raw
+ * Schema.org type names ("MusicEvent") and acronyms ("NGO") keep their spelling.
+ */
+function lowerForSentence(label: string, locale?: Locale): string {
+  if (/[a-z][A-Z]/.test(label) || /^[A-Z]{2,}/.test(label)) return label;
+  return locale ? label.toLocaleLowerCase(locale) : label.toLowerCase();
+}
+
 function labelInSentence(label: string, locale: Locale): string {
-  return isSourceLocale(locale) || isCjk(locale) ? label : label.toLocaleLowerCase(locale);
+  return isSourceLocale(locale) || isCjk(locale) ? label : lowerForSentence(label, locale);
 }
 
 export function domainOf(url: string | undefined): string | undefined {
@@ -82,6 +92,8 @@ function withoutCode(label: string | undefined): string | undefined {
   return label?.replace(/\s*[（(][^（()）]*[)）]$/, '');
 }
 
+const EAST_ASIAN_SCRIPT = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+
 export function formatAddress(node: JsonObject, path: readonly string[], locale: Locale, withStreet = true): string | undefined {
   const address = getAt(node, path);
   if (typeof address === 'string') return address.trim() || undefined;
@@ -91,8 +103,10 @@ export function formatAddress(node: JsonObject, path: readonly string[], locale:
   const region = textOf(address['addressRegion']);
   const postal = withStreet ? textOf(address['postalCode']) : undefined;
   const countryCode = textOf(address['addressCountry']);
-  // Chinese and Japanese addresses run from the largest unit to the smallest, without separators.
-  if (isCjk(locale)) {
+  // Chinese and Japanese addresses run from the largest unit to the smallest, without separators;
+  // an address written in Latin script keeps the Western order even in a Chinese or Japanese interface.
+  const eastAsian = [street, locality, region].some((part) => part !== undefined && EAST_ASIAN_SCRIPT.test(part));
+  if (isCjk(locale) && (eastAsian || ![street, locality, region].some(Boolean))) {
     const text = [region, locality, street].filter(Boolean).join('');
     return text || (countryCode ? withoutCode(optionLabel(countryOptions, countryCode, locale)) : undefined);
   }
@@ -143,7 +157,7 @@ function entitySentences(template: SchemaTemplate, node: JsonObject, locale: Loc
   const out: string[] = [];
   const alt = text('alternateName');
   const place = formatAddress(node, ['address'], locale, false);
-  const vars = { name: displayName, alt: alt ?? '', place: place ?? '', label, aLabel: withArticle(label.toLowerCase()) };
+  const vars = { name: displayName, alt: alt ?? '', place: place ?? '', label, aLabel: withArticle(lowerForSentence(label)) };
   if (alt && place) out.push(say(locale, '{name}（{alt}）是位於{place}的{label}。', '{name} ({alt}) is {aLabel} based in {place}.', vars));
   else if (alt) out.push(say(locale, '{name}（{alt}）是{label}。', '{name} ({alt}) is {aLabel}.', vars));
   else if (place) out.push(say(locale, '{name}是位於{place}的{label}。', '{name} is {aLabel} based in {place}.', vars));
@@ -179,7 +193,7 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
   const text = (...path: string[]) => textOf(getAt(node, path));
   const domain = domainOf(text('url'));
   const shown = displayName ?? localize(t('此項目', 'This item'), locale);
-  const aLabel = withArticle(label.toLowerCase());
+  const aLabel = withArticle(lowerForSentence(label));
   const inline = labelInSentence(label, locale);
   const out: string[] = [];
   switch (template.id) {
@@ -217,11 +231,14 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
     case 'service': {
       const provider = text('provider', 'name');
       const type = text('serviceType');
-      out.push(say(locale, '{providerPart}「{name}」{typePart}服務。', '{name}{typePart} is a service{providerPart}.', {
+      const serviceVars = {
         name: shown,
         providerPart: part(locale, provider, '{provider}提供', ' provided by {provider}', { provider: provider ?? '' }),
         typePart: part(locale, type, '（{type}）', ' ({type})', { type: type ?? '' }),
-      }));
+      };
+      out.push(provider
+        ? say(locale, '{providerPart}「{name}」{typePart}服務。', '{name}{typePart} is a service{providerPart}.', serviceVars)
+        : say(locale, '「{name}」{typePart}是一項服務。', '{name}{typePart} is a service{providerPart}.', serviceVars));
       const area = text('areaServed');
       if (area) out.push(say(locale, '服務地區：{area}。', 'Area served: {area}.', { area }));
       const audience = text('audience', 'audienceType');
@@ -255,7 +272,9 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
         name: shown,
         label: inline,
         aLabel,
-        authorPart: part(locale, author, '由{author}撰寫、', ' by {author}', { author: author ?? '' }),
+        authorPart: publisher
+          ? part(locale, author, '由{author}撰寫、', ' by {author}', { author: author ?? '' })
+          : part(locale, author, '由{author}撰寫的', ' by {author}', { author: author ?? '' }),
         publisherPart: part(locale, publisher, '{publisher}發布的', ', published by {publisher}', { publisher: publisher ?? '' }),
         datePart: part(locale, date, '，發布於 {date}', ' on {date}', { date: date ?? '' }),
       }));
@@ -263,7 +282,7 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
     }
     case 'faq': {
       const questions = listAt(node, ['mainEntity']).filter(isJsonObject).map((item) => textOf(item['name'])).filter((item): item is string => item !== undefined);
-      if (questions.length === 1) out.push(say(locale, '此頁面提供 {count} 組官方問答，例如「{question}」。', 'This page answers {count} question, such as "{question}".', { count: 1, question: questions[0]! }));
+      if (questions.length === 1) out.push(say(locale, '此頁面提供 {count} 組官方問答：「{question}」。', 'This page answers {count} question: "{question}".', { count: 1, question: questions[0]! }));
       else if (questions.length > 1) out.push(say(locale, '此頁面提供 {count} 組官方問答，例如「{question}」。', 'This page answers {count} questions, such as "{question}".', { count: questions.length, question: questions[0]! }));
       break;
     }
@@ -303,7 +322,8 @@ function sentencesFor(template: SchemaTemplate, node: JsonObject, locale: Locale
       break;
     }
     default:
-      out.push(say(locale, '{name}是 {label} 類型的項目。', '{name} is {aType}.', { name: shown, label: inline, aType: withArticle(label) }));
+      if (!typesOf(node).some((type) => type !== template.type)) out.push(say(locale, '{name}是一般的 Schema.org 項目（Thing）。', '{name} is a general Schema.org item (Thing).', { name: shown }));
+      else out.push(say(locale, '{name}是 {label} 類型的項目。', '{name} is of type {label}.', { name: shown, label: inline }));
   }
   return out;
 }
