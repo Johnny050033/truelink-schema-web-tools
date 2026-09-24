@@ -13,6 +13,7 @@ import {
   type ScalarField,
   type TemplateId,
 } from 'truelink-schema-document';
+import { BrandShield } from '../../components/Brand';
 import { Icon, type IconName } from '../../components/Icon';
 import { useToast } from '../../components/Toast';
 import { Button, Chip, IconButton, LinkButton, ScoreRing } from '../../components/ui';
@@ -260,9 +261,7 @@ export function BrandPage() {
                 </Button>
               </div>
               <div className="done-promo">
-                <span className="cdn-icon">
-                  <Icon name="shield" size={20} />
-                </span>
+                <BrandShield size={36} />
                 <div>
                   <p className="cdn-title">{t('brand.promo.title')}</p>
                   <p>{t('brand.promo.body')}</p>

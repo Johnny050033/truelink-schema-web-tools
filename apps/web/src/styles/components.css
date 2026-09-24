@@ -45,7 +45,6 @@
   --btn-height: 52px;
   padding: 0 24px;
   font-size: var(--fs-base);
-  border-radius: var(--radius-md);
 }
 
 .btn-block {
@@ -66,9 +65,12 @@
   background: var(--primary-active);
 }
 
+/* Gold is the brand's hero action: at most one per screen (TrueLink CI). */
 .btn-accent {
   background: var(--accent);
   color: var(--accent-contrast);
+  border-color: var(--accent-border);
+  font-weight: 700;
   box-shadow: var(--shadow-xs);
 }
 
@@ -113,6 +115,17 @@
 
 .btn-danger:hover:not(:disabled) {
   background: var(--danger);
+}
+
+/* Solid white action for navy hero bands, where the single gold CTA is used elsewhere. */
+.btn-inverse {
+  background: #ffffff;
+  color: var(--tl-brand-navy);
+  font-weight: 700;
+}
+
+.btn-inverse:hover:not(:disabled) {
+  background: var(--tl-slate-100);
 }
 
 .btn-on-dark {
@@ -467,7 +480,7 @@ input[type='search']::-webkit-search-cancel-button {
   gap: 10px;
   padding: 12px 12px 12px 16px;
   border-radius: var(--radius-md);
-  background: var(--tl-navy-900);
+  background: var(--tl-slate-900);
   color: #fff;
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
@@ -475,17 +488,17 @@ input[type='search']::-webkit-search-cancel-button {
   font-size: var(--fs-md);
 }
 
-:root[data-theme='dark'] .toast {
-  background: #1b2a41;
+:root[data-tl-theme='dark'] .toast {
+  background: var(--tl-slate-800);
   border: 1px solid var(--border-strong);
 }
 
 .toast-success > .icon {
-  color: #53d8a0;
+  color: var(--tl-emerald-400);
 }
 
 .toast-danger > .icon {
-  color: #ff9a90;
+  color: var(--tl-red-400);
 }
 
 .toast-message {
@@ -495,7 +508,7 @@ input[type='search']::-webkit-search-cancel-button {
 .toast-action {
   padding: 6px 10px;
   border-radius: var(--radius-xs);
-  color: var(--tl-gold-400);
+  color: var(--tl-gold-300);
   font-weight: 700;
   font-size: var(--fs-sm);
 }
@@ -699,15 +712,15 @@ input[type='search']::-webkit-search-cancel-button {
 }
 
 .score-ring.tone-amber .score-ring-value {
-  stroke: var(--warning-fill);
+  stroke: var(--grade-needs-work);
 }
 
 .score-ring.tone-blue .score-ring-value {
-  stroke: var(--tl-blue-500);
+  stroke: var(--grade-good);
 }
 
 .score-ring.tone-green .score-ring-value {
-  stroke: var(--success-fill);
+  stroke: var(--grade-excellent);
 }
 
 .score-ring-number {
@@ -738,16 +751,16 @@ input[type='search']::-webkit-search-cancel-button {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--tl-blue-500);
+  background: var(--grade-good);
   transition: width 400ms var(--ease);
 }
 
 .progress.tone-amber > span {
-  background: var(--warning-fill);
+  background: var(--grade-needs-work);
 }
 
 .progress.tone-green > span {
-  background: var(--success-fill);
+  background: var(--grade-excellent);
 }
 
 .tone-text-amber {
@@ -779,7 +792,7 @@ input[type='search']::-webkit-search-cancel-button {
   place-items: center;
   width: 64px;
   height: 64px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   background: var(--primary-soft);
   color: var(--primary-soft-text);
 }
@@ -902,4 +915,42 @@ input[type='search']::-webkit-search-cancel-button {
 
 .tok-tag {
   color: var(--code-tag);
+}
+
+/* ---------- Official TrueLink shield ---------- */
+.brand-shield {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  aspect-ratio: 880 / 941;
+}
+
+.brand-shield-color {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reversed variant: the official mono master as a mask, white on navy and the nav text colour in dark mode. */
+.brand-shield-rev {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background-color: var(--nav-fg-strong);
+  -webkit-mask: url('../assets/brand/shield-mono.svg') center / contain no-repeat;
+  mask: url('../assets/brand/shield-mono.svg') center / contain no-repeat;
+}
+
+:root[data-tl-theme='dark'] .brand-shield-color,
+.brand-shield-reverse .brand-shield-color {
+  display: none;
+}
+
+:root[data-tl-theme='dark'] .brand-shield-rev,
+.brand-shield-reverse .brand-shield-rev {
+  display: block;
+}
+
+.brand-shield-reverse .brand-shield-rev {
+  background-color: #ffffff;
 }

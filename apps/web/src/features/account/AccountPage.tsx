@@ -1,7 +1,14 @@
-import { TRUELINK_LINKS } from '../../config';
+import { CLOUD_HOST_PATH, TRUELINK_LINKS } from '../../config';
+import { BrandShield } from '../../components/Brand';
 import { Icon, type IconName } from '../../components/Icon';
 import { Chip, LinkButton } from '../../components/ui';
 import { useI18n, type MessageKey } from '../../i18n';
+import { cloudSignal } from '../../lib/cloud';
+import { useSignal } from '../../lib/signals';
+import { CloudPanel, useCloudStatusLines } from './CloudPanel';
+
+/** True when the Studio is served with a TrueLink host bridge (cloud drafts available). */
+const CLOUD_ENABLED = CLOUD_HOST_PATH !== undefined;
 
 interface Benefit {
   readonly id: 'deploy' | 'geo' | 'trust' | 'sync';
@@ -13,8 +20,12 @@ const BENEFITS: readonly Benefit[] = [
   { id: 'deploy', icon: 'cloud' },
   { id: 'geo', icon: 'sparkline' },
   { id: 'trust', icon: 'shield' },
-  { id: 'sync', icon: 'refresh', planned: true },
+  { id: 'sync', icon: 'refresh', planned: !CLOUD_ENABLED },
 ];
+
+function benefitKey(benefit: Benefit): string {
+  return benefit.id === 'sync' && CLOUD_ENABLED ? 'syncLive' : benefit.id;
+}
 
 type Availability = 'yes' | 'no' | 'platform' | 'planned';
 
@@ -25,7 +36,7 @@ const COMPARISON: readonly (readonly [MessageKey, Availability, Availability])[]
   ['account.compare.offline', 'yes', 'yes'],
   ['account.compare.deploy', 'no', 'platform'],
   ['account.compare.geo', 'no', 'platform'],
-  ['account.compare.sync', 'no', 'planned'],
+  ['account.compare.sync', 'no', CLOUD_ENABLED ? 'yes' : 'planned'],
 ];
 
 function AvailabilityCell({ value }: { value: Availability }) {
@@ -59,24 +70,35 @@ function AvailabilityCell({ value }: { value: Availability }) {
  */
 export function AccountPage() {
   const { t, locale } = useI18n();
+  const cloudLines = useCloudStatusLines();
+  // Signed-in TrueLink members are not asked to register again.
+  const signedIn = useSignal(cloudSignal).phase === 'ready';
   return (
     <div className="account-page page-wide">
       <h1 className="sr-only">{t('account.title')}</h1>
       <section className="account-hero" aria-labelledby="account-hero-title">
         <div className="account-hero-copy">
           <p className="eyebrow eyebrow-gold">
-            <Icon name="shield" size={16} />
+            <BrandShield size={24} tone="reverse" />
             {t('account.hero.eyebrow')}
           </p>
           <h2 id="account-hero-title">{t('account.hero.title')}</h2>
           <p className="hero-sub">{t('account.hero.body')}</p>
           <div className="hero-ctas">
-            <LinkButton variant="accent" size="lg" href={TRUELINK_LINKS.signup[locale]} external>
-              {t('account.cta.register')}
-            </LinkButton>
-            <LinkButton variant="ghost" size="lg" href={TRUELINK_LINKS.webTool[locale]} external className="btn-on-dark">
-              {t('account.cta.open')}
-            </LinkButton>
+            {signedIn ? (
+              <LinkButton variant="accent" size="lg" href={TRUELINK_LINKS.webTool[locale]} external>
+                {t('account.cta.open')}
+              </LinkButton>
+            ) : (
+              <>
+                <LinkButton variant="accent" size="lg" href={TRUELINK_LINKS.signup[locale]} external>
+                  {t('account.cta.register')}
+                </LinkButton>
+                <LinkButton variant="ghost" size="lg" href={TRUELINK_LINKS.webTool[locale]} external className="btn-on-dark">
+                  {t('account.cta.open')}
+                </LinkButton>
+              </>
+            )}
           </div>
           <p className="account-leave">
             <Icon name="info" size={14} />
@@ -90,17 +112,30 @@ export function AccountPage() {
               <Icon name="smartphone" size={18} />
               <span>{t('account.status.local')}</span>
             </li>
-            <li>
-              <Icon name="link" size={18} />
-              <span>{t('account.status.linking')}</span>
-            </li>
-            <li>
-              <Icon name="cloud" size={18} />
-              <span>{t('account.status.sync')}</span>
-            </li>
+            {cloudLines ? (
+              cloudLines.map((line) => (
+                <li key={line.text}>
+                  <Icon name={line.icon} size={18} />
+                  <span>{line.text}</span>
+                </li>
+              ))
+            ) : (
+              <>
+                <li>
+                  <Icon name="link" size={18} />
+                  <span>{t('account.status.linking')}</span>
+                </li>
+                <li>
+                  <Icon name="cloud" size={18} />
+                  <span>{t('account.status.sync')}</span>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </section>
+
+      {CLOUD_ENABLED ? <CloudPanel /> : null}
 
       <section className="section" aria-labelledby="benefits-title">
         <h2 id="benefits-title" className="sr-only">
@@ -113,10 +148,10 @@ export function AccountPage() {
                 <Icon name={benefit.icon} size={22} />
               </span>
               <h3>
-                {t(`account.benefit.${benefit.id}.title` as MessageKey)}
+                {t(`account.benefit.${benefitKey(benefit)}.title` as MessageKey)}
                 {benefit.planned ? <Chip tone="neutral">{t('account.planned')}</Chip> : null}
               </h3>
-              <p>{t(`account.benefit.${benefit.id}.body` as MessageKey)}</p>
+              <p>{t(`account.benefit.${benefitKey(benefit)}.body` as MessageKey)}</p>
             </article>
           ))}
         </div>
@@ -151,9 +186,11 @@ export function AccountPage() {
           </table>
         </div>
         <div className="compare-cta">
-          <LinkButton variant="accent" href={TRUELINK_LINKS.signup[locale]} external>
-            {t('account.cta.register')}
-          </LinkButton>
+          {signedIn ? null : (
+            <LinkButton variant="primary" href={TRUELINK_LINKS.signup[locale]} external>
+              {t('account.cta.register')}
+            </LinkButton>
+          )}
           <LinkButton variant="ghost" href={TRUELINK_LINKS.eeatGuide} external>
             {t('account.cta.guide')}
           </LinkButton>

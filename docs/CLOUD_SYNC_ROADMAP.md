@@ -1,9 +1,13 @@
 # Open-source editor + optional hosted schema storage
 
-Status: proposal only. Step 1 (the local-first editor) now exists as the Schema Studio
-PWA in `apps/web`; it is not a sync client, native desktop app or cloud storage service.
-Its sign-up buttons only link to the TrueLink site. Nothing here deploys a backend,
-sends customer data, or changes another repository.
+Status: step 1 (the local-first editor) exists as the Schema Studio PWA in `apps/web`.
+The client side of step 2 now exists too: the `SchemaDocumentRecord` contract
+(`packages/schema-document`), the host-bridge protocol with an in-memory reference host
+(`packages/cloud-client`) and the Studio's cloud-drafts screen, all tested against that
+reference host. The TrueLink host page, private draft storage, rules and server-side
+publishing are **not implemented or deployed**; without them the Studio stays local-only.
+Nothing here deploys a backend, sends customer data, or changes another repository. The
+architecture and rollout are in [PLATFORM_STRATEGY.zh-TW.md](PLATFORM_STRATEGY.zh-TW.md).
 
 ## Product recommendation
 

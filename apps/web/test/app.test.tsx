@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { auditDocument, getTemplate, toJsonLdJson } from 'truelink-schema-document';
-import { httpsOr, sameOriginPath } from '../src/config';
+import { httpsOr } from '../src/config';
 import { CodeBlock } from '../src/components/CodeBlock';
 import { AiDescription, EntityCard, SearchPreview } from '../src/features/editor/Previews';
 import { clearHiddenFields } from '../src/features/editor/FormView';
@@ -46,14 +46,6 @@ describe('outbound link configuration', () => {
     expect(httpsOr(undefined, 'fallback')).toBe('fallback');
   });
 
-  it('only accepts same-origin logo paths', () => {
-    expect(sameOriginPath('./brand/truelink-logo.svg')).toBe('./brand/truelink-logo.svg');
-    expect(sameOriginPath('/brand/logo.png')).toBe('/brand/logo.png');
-    expect(sameOriginPath('https://evil.example/logo.svg')).toBeUndefined();
-    expect(sameOriginPath('//evil.example/logo.svg')).toBeUndefined();
-    expect(sameOriginPath('data:image/svg+xml,<svg/>')).toBeUndefined();
-    expect(sameOriginPath('./logo.js')).toBeUndefined();
-  });
 });
 
 describe('routing', () => {

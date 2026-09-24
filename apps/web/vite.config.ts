@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
-import { defaultClientConditions, type Plugin } from 'vite';
+import { defaultClientConditions, defaultServerConditions, type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
@@ -81,7 +81,9 @@ function serviceWorker(): Plugin {
 export default defineConfig({
   base: './',
   plugins: [react(), productionCsp(), serviceWorker()],
+  // Workspace packages resolve to their TypeScript source, in the browser build and in tests.
   resolve: { conditions: ['source', ...defaultClientConditions] },
+  ssr: { resolve: { conditions: ['source', ...defaultServerConditions] } },
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   build: { target: 'es2022', sourcemap: false, assetsInlineLimit: 0 },
   server: { port: 5173 },

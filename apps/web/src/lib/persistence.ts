@@ -54,8 +54,12 @@ const prefsSchema = {
   installDismissedAt: { type: 'number', required: true, min: 0 },
 } satisfies Record<string, FieldRule>;
 
-export function defaultPreferences(locale: Locale): Preferences {
-  return { theme: 'system', locale, exportCount: 0, nudgeDismissedAt: 0, installDismissedAt: 0 };
+/**
+ * Light is the default, as on the TrueLink site (tl-theme.js deliberately ignores
+ * prefers-color-scheme until the user chooses). "system" stays available as an explicit choice.
+ */
+export function defaultPreferences(locale: Locale, theme: ThemePreference = 'light'): Preferences {
+  return { theme, locale, exportCount: 0, nudgeDismissedAt: 0, installDismissedAt: 0 };
 }
 
 export function emptyBrand(): BrandProfile {
@@ -118,8 +122,8 @@ export function parseBrand(raw: string | null): { brand: BrandProfile; corrupt: 
   return { brand: emptyBrand(), corrupt: true };
 }
 
-export function parsePreferences(raw: string | null, fallbackLocale: Locale): Preferences {
-  const defaults = defaultPreferences(fallbackLocale);
+export function parsePreferences(raw: string | null, fallbackLocale: Locale, fallbackTheme: ThemePreference = 'light'): Preferences {
+  const defaults = defaultPreferences(fallbackLocale, fallbackTheme);
   if (raw === null) return defaults;
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -149,6 +153,22 @@ export function browserStorage(): KeyValueStorage | null {
     return storage;
   } catch {
     return null;
+  }
+}
+
+/** localStorage key and values used by the TrueLink site's tl-theme.js for its light/dark choice. */
+export const SHARED_THEME_KEY = 'tl_theme';
+
+/**
+ * Reads the theme chosen on the TrueLink site. It only exists when the Studio is served from
+ * the same origin; it seeds a first run and is never written, so tl-theme.js stays its owner.
+ */
+export function readSharedTheme(storage: KeyValueStorage | null): 'light' | 'dark' | undefined {
+  try {
+    const value = storage?.getItem(SHARED_THEME_KEY);
+    return value === 'light' || value === 'dark' ? value : undefined;
+  } catch {
+    return undefined;
   }
 }
 

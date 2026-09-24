@@ -117,7 +117,7 @@ function ImportSection() {
         <div className="import-result" role="status" aria-live="polite">
           {analysis.error ? <Notice tone="danger">{analysis.error}</Notice> : null}
           {analysis.issues.map((issue, index) => (
-            <Notice key={`${issue.code}-${index}`} tone={analysis.candidates.length > 0 ? 'warning' : 'danger'}>
+            <Notice key={`${issue.code}-${index}`} tone={issue.code === 'legacy_store' ? 'info' : analysis.candidates.length > 0 ? 'warning' : 'danger'}>
               {l(issue.message)}
             </Notice>
           ))}

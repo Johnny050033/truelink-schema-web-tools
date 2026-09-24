@@ -16,6 +16,7 @@
   "dependencies": {
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "truelink-schema-cloud": "workspace:*",
     "truelink-schema-document": "workspace:*",
     "truelink-schema-web-tools": "workspace:*"
   },

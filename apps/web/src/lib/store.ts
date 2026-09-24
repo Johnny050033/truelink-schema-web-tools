@@ -14,6 +14,7 @@ import {
   type Preferences,
   type SchemaDoc,
   type SliceName,
+  type ThemePreference,
 } from './persistence';
 
 export type StorageProblem = 'quota' | 'limit' | 'document-too-large';
@@ -50,6 +51,8 @@ function randomId(): string {
 export interface StoreOptions {
   readonly storage: KeyValueStorage | null;
   readonly locale: Locale;
+  /** Theme for a first run with no saved preferences (e.g. the TrueLink site's tl_theme choice). */
+  readonly theme?: ThemePreference;
   readonly now?: () => number;
   readonly makeId?: () => string;
   /** Debounce for writes; flush() writes immediately. */
@@ -92,7 +95,7 @@ export function createAppStore(options: StoreOptions) {
   let state: AppState = {
     docs: docsResult.docs,
     brand: brandResult.brand,
-    prefs: parsePreferences(read(STORAGE_KEYS.prefs), options.locale),
+    prefs: parsePreferences(read(STORAGE_KEYS.prefs), options.locale, options.theme),
     storage: {
       available: storage !== null,
       problem: undefined,
@@ -199,6 +202,24 @@ export function createAppStore(options: StoreOptions) {
     },
     changeTemplate(id: string, templateId: TemplateId): void {
       replaceDoc(id, (doc) => touch(doc, { templateId }));
+    },
+    /**
+     * Inserts or replaces a document under a given id (for example a TrueLink cloud draft),
+     * so the same document stays linked across devices.
+     */
+    putDocument(input: { readonly id: string; readonly title: string; readonly templateId: TemplateId; readonly data: JsonObject }): SchemaDoc | undefined {
+      const patch = { title: input.title.slice(0, 120), templateId: input.templateId, data: cloneJson(input.data) };
+      const existing = state.docs.find((doc) => doc.id === input.id);
+      if (existing) {
+        const updated = touch(existing, patch);
+        replaceDoc(input.id, () => updated);
+        return updated;
+      }
+      if (!actions.canCreate()) return undefined;
+      const time = now();
+      const doc: SchemaDoc = { id: input.id, ...patch, createdAt: time, updatedAt: time, revision: 0 };
+      setState({ ...state, docs: [doc, ...state.docs] }, ['docs']);
+      return doc;
     },
     duplicateDocument(id: string, suffix: string): SchemaDoc | undefined {
       const source = state.docs.find((doc) => doc.id === id);

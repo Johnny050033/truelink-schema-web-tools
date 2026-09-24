@@ -8,6 +8,11 @@ const VERSION = '__SW_VERSION__';
 const CACHE_PREFIX = 'tl-schema-studio-';
 const CACHE = `${CACHE_PREFIX}${VERSION}`;
 const PRECACHE = __SW_PRECACHE__;
+// Absolute paths this worker answers for. Everything else on the origin (for example the
+// TrueLink host-bridge page or other TrueLink pages when the Studio is served under /studio/)
+// is left to the network untouched.
+const OWN_PATHS = new Set(PRECACHE.map((path) => new URL(path, self.location.href).pathname));
+const SHELL_PATHS = new Set([new URL('./', self.location.href).pathname, new URL('./index.html', self.location.href).pathname]);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -36,6 +41,8 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
+    // Only the Studio's own document gets the offline shell (routes live in the hash).
+    if (!SHELL_PATHS.has(url.pathname)) return;
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE);
@@ -47,6 +54,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (!OWN_PATHS.has(url.pathname)) return;
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE);

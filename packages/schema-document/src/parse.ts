@@ -80,7 +80,8 @@ export type ImportIssueCode =
   | 'missing_type'
   | 'too_many_blocks'
   | 'document_too_large'
-  | 'non_schema_context';
+  | 'non_schema_context'
+  | 'legacy_store';
 
 export interface ImportIssue {
   readonly code: ImportIssueCode;
@@ -107,6 +108,10 @@ const messages: Record<ImportIssueCode, LocalizedText> = {
   too_many_blocks: t(`一次最多匯入 ${LIMITS.maxImportBlocks} 個項目，其餘未匯入。`, `At most ${LIMITS.maxImportBlocks} items are imported at once; the rest were skipped.`),
   document_too_large: t(`有項目超過單份文件 ${LIMITS.documentBytes / 1024} KiB 上限，已略過。`, `An item exceeds the ${LIMITS.documentBytes / 1024} KiB document limit and was skipped.`),
   non_schema_context: t('@context 不是 https://schema.org；資料會原樣保留，但請確認來源。', '@context is not https://schema.org; data is kept as-is, but check its origin.'),
+  legacy_store: t(
+    '已辨識為 TrueLink 網頁工具儲存的資料：主要實體與常見問答會分成兩份文件；網域白名單是部署設定，不會匯入。',
+    'Recognised as data saved by the TrueLink web tool: the main entity and FAQ become separate documents; the domain whitelist is a deployment setting and is not imported.',
+  ),
 };
 
 function importIssue(code: ImportIssueCode, block?: number): ImportIssue {
@@ -126,6 +131,24 @@ function withContext(context: JsonValue | undefined, node: JsonObject): JsonObje
   if (context !== undefined && node['@context'] === undefined) defineValue(copy, '@context', cloneJson(context));
   for (const [key, value] of Object.entries(node)) defineValue(copy, key, value);
   return copy;
+}
+
+/**
+ * Recognises the object the TrueLink web tool saves, `{ mainSchema, faqs, type, whitelistedDomains }`,
+ * and returns its JSON-LD nodes: the main entity and, when there are questions, an FAQPage.
+ */
+export function legacyStoreNodes(value: JsonValue): JsonObject[] | undefined {
+  if (!isJsonObject(value) || value['@type'] !== undefined || value['@graph'] !== undefined) return undefined;
+  const main = value['mainSchema'];
+  if (!isJsonObject(main)) return undefined;
+  const node = cloneJson(main);
+  if (node['@type'] === undefined && typeof value['type'] === 'string' && value['type'].trim()) node['@type'] = value['type'].trim();
+  const nodes = [node];
+  const faqs = value['faqs'];
+  if (Array.isArray(faqs) && faqs.length > 0 && faqs.every(isJsonObject)) {
+    nodes.push({ '@context': node['@context'] ?? 'https://schema.org', '@type': 'FAQPage', mainEntity: cloneJson(faqs) });
+  }
+  return nodes;
 }
 
 function collectNodes(value: JsonValue, inherited: JsonValue | undefined, out: JsonObject[]): void {
@@ -152,6 +175,7 @@ export function parseJsonLdTexts(texts: readonly string[]): ImportResult {
   if (total > LIMITS.importBytes) return { candidates: [], issues: [importIssue('too_large')] };
 
   const nodes: { node: JsonObject; block: number }[] = [];
+  let legacyStore = false;
   nonEmpty.forEach((text, block) => {
     let parsed: unknown;
     try {
@@ -165,8 +189,11 @@ export function parseJsonLdTexts(texts: readonly string[]): ImportResult {
       issues.push(importIssue(check.code === 'too_large' ? 'document_too_large' : check.code, nonEmpty.length > 1 ? block : undefined));
       return;
     }
+    const legacy = legacyStoreNodes(parsed as JsonValue);
+    if (legacy) legacyStore = true;
     const collected: JsonObject[] = [];
-    collectNodes(parsed as JsonValue, undefined, collected);
+    if (legacy) collected.push(...legacy);
+    else collectNodes(parsed as JsonValue, undefined, collected);
     for (const node of collected) nodes.push({ node, block });
   });
 
@@ -191,6 +218,7 @@ export function parseJsonLdTexts(texts: readonly string[]): ImportResult {
     if (!isSchemaOrgContext(node['@context'])) foreignContext = true;
     candidates.push({ index: candidates.length, node, types, templateId: templateForTypes(types).id });
   }
+  if (legacyStore && candidates.length > 0) issues.push(importIssue('legacy_store'));
   if (skippedType) issues.push(importIssue('missing_type'));
   if (skippedSize) issues.push(importIssue('document_too_large'));
   if (foreignContext) issues.push(importIssue('non_schema_context'));

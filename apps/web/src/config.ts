@@ -11,13 +11,6 @@ export function httpsOr(value: string | undefined, fallback: string): string {
   }
 }
 
-/** Accepts only same-origin relative asset paths (the CSP blocks other image origins). */
-export function sameOriginPath(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  if (!/^\.{0,2}\/[\w./-]+\.(svg|png|webp)$/i.test(value) || value.includes('//')) return undefined;
-  return value;
-}
-
 const env = import.meta.env;
 
 export const APP_VERSION = __APP_VERSION__;
@@ -41,12 +34,21 @@ export const TRUELINK_LINKS = {
   source: 'https://github.com/Johnny050033/truelink-schema-web-tools',
 } as const satisfies Record<string, string | Record<Locale, string>>;
 
+/**
+ * Same-origin path of the TrueLink host page that bridges cloud drafts (for example
+ * /studio/host.html when the Studio is served by TrueLink). Unset means local-only.
+ */
+export function hostPath(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  return /^(?:\.\/|\/(?!\/))[A-Za-z0-9._~/-]*$/.test(value) ? value : undefined;
+}
+
+export const CLOUD_HOST_PATH = hostPath(env.VITE_TRUELINK_HOST_URL);
+
 export const VALIDATORS = {
   richResults: 'https://search.google.com/test/rich-results',
   schemaMarkup: 'https://validator.schema.org/',
 } as const;
-
-export const BRAND_LOGO_URL = sameOriginPath(env.VITE_BRAND_LOGO_URL);
 
 /** Local storage budget from the product plan; hitting it blocks writes, never deletes. */
 export const LOCAL_LIMITS = {

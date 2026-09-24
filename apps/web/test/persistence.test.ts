@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LOCAL_LIMITS } from '../src/config';
-import { createBackup, emptyBrand, parseBackup, parseBrand, parseDocs, parsePreferences, toSchemaDoc } from '../src/lib/persistence';
+import { createBackup, emptyBrand, parseBackup, parseBrand, parseDocs, parsePreferences, readSharedTheme, toSchemaDoc } from '../src/lib/persistence';
 
 const validDoc = {
   id: 'doc-1',
@@ -51,8 +51,21 @@ describe('brand and preferences', () => {
   it('keeps known preferences, ignores unknown ones and resets invalid values', () => {
     expect(parsePreferences(null, 'en').locale).toBe('en');
     expect(parsePreferences(JSON.stringify({ theme: 'dark', locale: 'zh-TW', futureSetting: 1 }), 'en')).toMatchObject({ theme: 'dark', locale: 'zh-TW' });
-    expect(parsePreferences(JSON.stringify({ theme: 'neon' }), 'en').theme).toBe('system');
-    expect(parsePreferences('[', 'zh-TW').theme).toBe('system');
+    expect(parsePreferences(JSON.stringify({ theme: 'neon' }), 'en').theme).toBe('light');
+    expect(parsePreferences('[', 'zh-TW').theme).toBe('light');
+  });
+
+  it('defaults to the light theme like the TrueLink site and can be seeded by its tl_theme choice', () => {
+    expect(parsePreferences(null, 'zh-TW').theme).toBe('light');
+    expect(parsePreferences(null, 'zh-TW', 'dark').theme).toBe('dark');
+    // A saved Studio choice wins over the seed.
+    expect(parsePreferences(JSON.stringify({ theme: 'system' }), 'zh-TW', 'dark').theme).toBe('system');
+    const storage = (value: string | null) => ({ getItem: () => value, setItem: () => undefined, removeItem: () => undefined });
+    expect(readSharedTheme(storage('dark'))).toBe('dark');
+    expect(readSharedTheme(storage('light'))).toBe('light');
+    expect(readSharedTheme(storage('system'))).toBeUndefined();
+    expect(readSharedTheme(storage(null))).toBeUndefined();
+    expect(readSharedTheme(null)).toBeUndefined();
   });
 });
 

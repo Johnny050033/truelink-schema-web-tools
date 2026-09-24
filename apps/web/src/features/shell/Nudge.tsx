@@ -52,7 +52,7 @@ export function NudgeProvider({ children }: { children: ReactNode }) {
             <p>{t('nudge.export.body')}</p>
             <div className="nudge-actions">
               <Button
-                variant="accent"
+                variant="primary"
                 size="sm"
                 onClick={() => {
                   dismiss();

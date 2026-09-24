@@ -50,3 +50,33 @@ Not verified: installation prompts on real Android/iOS/desktop devices, Safari a
 Firefox rendering, screen-reader passes, native store packaging, TrueLink sign-up URL
 (defaults to the public homepage until configured), and the official brand colour codes
 (tokens follow the CI brief's navy/green/gold direction and need confirmation).
+
+# TrueLink CI alignment, shared contract and host bridge — 2026-09-24 (second pass)
+
+Scope: official TrueLink design tokens and brand assets in Schema Studio; the
+`SchemaDocumentRecord` contract and TrueLink web tool format conversion; the new
+`packages/cloud-client` (`truelink-schema-cloud`) host-bridge protocol; Studio cloud
+drafts, live change handling and core-version gating; browser builds and conformance
+cases of the shared core; CI and release workflows. No TrueLink backend, host page,
+credentials or deployment is included or was changed.
+
+Environment: Node.js 22.22.2, pnpm 11.19.0, TypeScript 7.0.2, Vitest 5.0.0, Vite 8.3.0,
+headless Chromium (Playwright 1.56 browser build 1194) on Linux.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm check` (core + all workspaces) | PASS |
+| Core library tests / built-entry smoke | 67/67; 4/4 |
+| `truelink-schema-document` tests | 89/89 (adds record validation, web tool format round trips, conformance cases, core version) |
+| Browser builds of the shared core | global script and ES module built; 4/4 smoke checks in a bare VM (version banner, script escaping, format round trip, ESM API) |
+| `truelink-schema-cloud` tests | 19/19 (handshake, timeouts, sign-in URL origin, revisions and conflicts, idempotency, quota, request validation, hidden host errors, publishing rules, change notices, minimum core version, window transport origin checks) |
+| `apps/web` tests | 39/39 (adds theme defaults, host-path validation, explicit sync, conflicts, auto-apply of unchanged linked documents, publishing, outdated tabs) |
+| `pnpm pack` of both packages | PASS; `workspace:*` resolves to the real version |
+| Browser walk-through, standalone build | desktop, mobile and dark screens, brand wizard, editor, import, library, account, settings, English UI, offline reload: no console errors |
+| Theme contract in the browser | OS dark mode alone stays light; a same-origin `tl_theme=dark` seeds the first run; a saved Studio choice wins |
+| Browser walk-through with a demo host page (QA only, not committed) | upload → synced; publish with confirmation and official score; later local edit shows as local changes; signed-out, mobile and dark states; a simulated save in another TrueLink tool updates the open Studio automatically; an outdated tab is asked to reload; no console errors |
+| Service worker scope | fixed: navigations to other same-origin pages (e.g. the host page) are no longer answered with the Studio shell; offline reload still works |
+
+Not verified: a real TrueLink host page, backend functions, database rules or deployment
+(not implemented in this repository); GitHub Actions workflows (added, not yet run on
+GitHub); Safari, Firefox and real mobile devices; screen-reader passes.

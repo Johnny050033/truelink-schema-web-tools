@@ -88,14 +88,3 @@ export function Icon({ name, size = 20, className, title }: { name: IconName | s
     </svg>
   );
 }
-
-/** Product glyph for Schema Studio (not the TrueLink trademark). */
-export function StudioMark({ size = 32 }: { size?: number }) {
-  return (
-    <svg className="studio-mark" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <rect width="32" height="32" rx="8" fill="var(--mark-bg, #c9a13b)" />
-      <path d="M12.5 9.5c-2 0-2.75 1-2.75 2.75v1.5c0 1.3-.7 2.1-1.75 2.25 1.05.15 1.75.95 1.75 2.25v1.5c0 1.75.75 2.75 2.75 2.75M19.5 9.5c2 0 2.75 1 2.75 2.75v1.5c0 1.3.7 2.1 1.75 2.25-1.05.15-1.75.95-1.75 2.25v1.5c0 1.75-.75 2.75-2.75 2.75" fill="none" stroke="var(--mark-fg, #0d2240)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="16" cy="16" r="2.25" fill="var(--mark-fg, #0d2240)" />
-    </svg>
-  );
-}

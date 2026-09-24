@@ -3,7 +3,7 @@ import type { Grade } from 'truelink-schema-document';
 import { useI18n } from '../i18n';
 import { Icon, type IconName } from './Icon';
 
-type Variant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'danger' | 'quiet';
+type Variant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'danger' | 'quiet' | 'inverse';
 type Size = 'md' | 'sm' | 'lg';
 
 function buttonClass(variant: Variant, size: Size, block?: boolean, extra?: string): string {

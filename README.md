@@ -8,11 +8,20 @@ customer data, deployment wiring, or paid services are included.
 | Workspace | What it is |
 | --- | --- |
 | `/` (`truelink-schema-web-tools`) | Core library: flat-object validation and the sandboxed static embed (below) |
-| [`packages/schema-document`](packages/schema-document/README.md) | Schema.org JSON-LD templates, bounded import, safe script output and advisory checks |
-| [`apps/web`](apps/web/README.md) | **Schema Studio** PWA: brand-profile wizard, form/JSON-LD editor, live previews, import/export, TrueLink sign-up funnel |
+| [`packages/schema-document`](packages/schema-document/README.md) | The shared core: Schema.org JSON-LD templates, bounded import, safe script output, advisory checks, the `SchemaDocumentRecord` contract and conversion to/from the TrueLink web tool's stored format; also ships browser builds and conformance cases |
+| [`packages/cloud-client`](packages/cloud-client/README.md) | `truelink-schema-cloud`: the host-bridge protocol (client, host dispatcher, in-memory reference host) for TrueLink cloud drafts |
+| [`apps/web`](apps/web/README.md) | **Schema Studio** PWA: brand-profile wizard, form/JSON-LD editor, live previews, import/export, TrueLink sign-up funnel and, when served by TrueLink, cloud drafts and publishing |
+
+How these pieces serve every TrueLink surface (web tool, Studio, app, extension, plugins,
+developer and AI tools), and how one update reaches all of them, is described in the
+[platform strategy](docs/PLATFORM_STRATEGY.zh-TW.md) (Traditional Chinese).
 
 Try the app locally with `pnpm install --frozen-lockfile && pnpm dev`, then open
 <http://localhost:5173>. It works offline once loaded and sends no data to any server.
+
+The code is MIT licensed. The TrueLink name, shield logo and app icons used by the
+official Schema Studio build are **not** covered by the MIT License; see
+[TRADEMARKS.md](TRADEMARKS.md) before redistributing a fork.
 
 ## Develop
 
@@ -72,16 +81,18 @@ At most 100 own input/schema fields are accepted, including non-enumerable field
 symbol and prototype-sensitive keys cannot bypass validation. Server-managed fields
 are never required from the client even if the server's schema marks them required.
 
-## Optional cloud storage direction (planned, not connected)
+## Optional TrueLink cloud drafts (client side ready, host side pending)
 
-The intended product direction is an open-source, local-first Schema editor with
-optional signed-in TrueLink cloud sync. The local-first editor now exists as Schema
-Studio; local import/export and backups work without an account. Cloud data would be
-private by default, with explicit publishing and access controls. This repository
-currently makes **no network requests to a storage API** and does not contain server
-credentials. No storage service, upload endpoint or account linking is implemented:
-the app's sign-up buttons are plain links to the TrueLink site and carry no data.
-See the [cloud sync roadmap](docs/CLOUD_SYNC_ROADMAP.md) for boundaries and acceptance.
+Schema Studio is local-first: editing, import/export and backups work without an account.
+When TrueLink serves the Studio on its own origin and configures `VITE_TRUELINK_HOST_URL`,
+the Studio talks to a TrueLink host page over `postMessage` (`truelink-schema-cloud`):
+explicit per-document uploads, private drafts with revision checks, linked documents that
+follow newer cloud versions when unchanged locally, and confirmed publishing. The host page,
+storage and backend functions belong to the private TrueLink SaaS and are **not** in this
+repository. This repository still makes **no network requests to a storage API** and
+contains no server credentials; without a host the sign-up buttons are plain links that
+carry no data. See the [cloud sync roadmap](docs/CLOUD_SYNC_ROADMAP.md) for boundaries and
+acceptance criteria.
 
 ## Safe static embed profile
 

@@ -8,6 +8,6 @@ interface ImportMetaEnv {
   readonly VITE_TRUELINK_SIGNUP_URL_EN?: string;
   /** TrueLink web tools / sign-in entry (HTTPS only). */
   readonly VITE_TRUELINK_APP_URL?: string;
-  /** Same-origin path to an approved official logo, e.g. ./brand/truelink-logo.svg */
-  readonly VITE_BRAND_LOGO_URL?: string;
+  /** Same-origin path of the TrueLink host bridge page, e.g. /studio/host.html (enables cloud drafts). */
+  readonly VITE_TRUELINK_HOST_URL?: string;
 }

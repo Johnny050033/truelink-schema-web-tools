@@ -15,17 +15,19 @@ const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then(
 import { I18nProvider, translate, useI18n } from './i18n';
 import type { ThemePreference } from './lib/persistence';
 import { useRoute, type Route } from './lib/router';
+import { cloudUpdatesSignal } from './lib/cloud';
 import { installedSignal, useSignal } from './lib/signals';
 import { useAppState } from './lib/store';
 
-const THEME_COLORS = { light: '#0d2240', dark: '#070e19' } as const;
+// Matches --nav-surface, so the browser chrome continues the app bar in each theme.
+const THEME_COLORS = { light: '#ffffff', dark: '#0f172a' } as const;
 
 function useDocumentTheme(preference: ThemePreference): void {
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const apply = () => {
       const theme = preference === 'system' ? (media.matches ? 'dark' : 'light') : preference;
-      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-tl-theme', theme);
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme]);
     };
     apply();
@@ -68,6 +70,17 @@ function InstalledToast() {
   return null;
 }
 
+/** Announces linked documents that were updated from TrueLink (another tool, tab or device). */
+function CloudUpdatesToast() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const update = useSignal(cloudUpdatesSignal);
+  useEffect(() => {
+    if (update) toast({ message: t('cloud.autoApplied', { count: update.count }), tone: 'success', icon: 'refresh' });
+  }, [update, t, toast]);
+  return null;
+}
+
 export function App() {
   const locale = useAppState((state) => state.prefs.locale);
   const theme = useAppState((state) => state.prefs.theme);
@@ -83,6 +96,7 @@ export function App() {
       <ToastProvider>
         <NudgeProvider>
           <InstalledToast />
+          <CloudUpdatesToast />
           <Shell route={route}>
             <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
               <Page route={route} />

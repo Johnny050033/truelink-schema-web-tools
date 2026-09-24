@@ -32,6 +32,22 @@ sanitizer or a replacement for authorization, database rules, CSP, or tenant iso
   and exported `<script type="application/ld+json">` output escapes `<`, `>` and `&`.
 - Sign-up and TrueLink links are HTTPS-only, open in a new tab with
   `noopener noreferrer`, and never carry Schema data, tokens or personal data.
+- The service worker answers only for the Studio's own precached files and document;
+  other same-origin pages (such as a TrueLink host page) are never intercepted.
+
+## Host bridge (`packages/cloud-client`)
+
+- Cloud drafts are only enabled for a same-origin host path (`VITE_TRUELINK_HOST_URL`
+  must be a relative path). The Studio never loads an auth SDK or holds tokens.
+- `windowTransport` sends to one concrete origin and accepts messages only from that
+  window and origin. Every host response is validated (records, revisions, times,
+  scores); sign-in URLs must stay on the host origin.
+- Hosts must derive the owner from their own session. `serveHost` rejects unknown request
+  fields (for example `targetUid`), records reject server-managed fields, and unexpected
+  host errors reach clients only as a generic `unavailable`.
+- Uploads are explicit. Automatic updates only fast-forward linked documents without local
+  edits; conflicting edits are never overwritten without confirmation. Publishing requires
+  `confirmed: true` and pinned draft revisions.
 
 Use synthetic fixtures for reports. Do not post credentials, production exports,
 customer records, or an exploitable private-system URL in public issues. Contact

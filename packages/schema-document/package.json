@@ -1,23 +1,36 @@
 {
   "name": "truelink-schema-document",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Local-first Schema.org JSON-LD templates, bounded import, safe script serialization and advisory completeness checks.",
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": { "source": "./src/index.ts", "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./browser": "./dist/browser/truelink-schema-document.browser.mjs",
+    "./browser.global": "./dist/browser/truelink-schema-document.global.js",
+    "./conformance/legacy-store.json": "./conformance/legacy-store.json"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src",
+    "conformance"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && vite build --config vite.browser.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "pnpm typecheck && pnpm test && pnpm build"
+    "smoke": "node test/browser-smoke.mjs",
+    "check": "pnpm typecheck && pnpm test && pnpm build && pnpm smoke"
   },
   "devDependencies": {
     "@types/node": "22.20.2",
     "typescript": "7.0.2",
+    "vite": "8.3.0",
     "vitest": "5.0.0"
   }
 }

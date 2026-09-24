@@ -16,7 +16,7 @@
 }
 
 .eyebrow-gold {
-  color: var(--tl-gold-400);
+  color: var(--tl-brand-gold);
   text-transform: none;
   letter-spacing: 0.02em;
 }
@@ -26,7 +26,7 @@
 .account-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   background-color: var(--hero-bg);
   color: var(--hero-text);
   isolation: isolate;
@@ -40,7 +40,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='200' viewBox='0 0 240 200'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1'%3E%3Cpath d='M20 30L90 70L160 40L220 90M90 70L110 150L190 170M160 40L190 170M20 30L40 120L110 150'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='0.16'%3E%3Ccircle cx='20' cy='30' r='3'/%3E%3Ccircle cx='90' cy='70' r='3.5'/%3E%3Ccircle cx='160' cy='40' r='3'/%3E%3Ccircle cx='220' cy='90' r='2.5'/%3E%3Ccircle cx='110' cy='150' r='3'/%3E%3Ccircle cx='190' cy='170' r='3.5'/%3E%3Ccircle cx='40' cy='120' r='2.5'/%3E%3C/g%3E%3Ccircle cx='90' cy='70' r='3.5' fill='%23d8b44f' fill-opacity='0.55'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='200' viewBox='0 0 240 200'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1'%3E%3Cpath d='M20 30L90 70L160 40L220 90M90 70L110 150L190 170M160 40L190 170M20 30L40 120L110 150'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='0.16'%3E%3Ccircle cx='20' cy='30' r='3'/%3E%3Ccircle cx='90' cy='70' r='3.5'/%3E%3Ccircle cx='160' cy='40' r='3'/%3E%3Ccircle cx='220' cy='90' r='2.5'/%3E%3Ccircle cx='110' cy='150' r='3'/%3E%3Ccircle cx='190' cy='170' r='3.5'/%3E%3Ccircle cx='40' cy='120' r='2.5'/%3E%3C/g%3E%3Ccircle cx='90' cy='70' r='3.5' fill='%23e0b84c' fill-opacity='0.55'/%3E%3C/svg%3E");
   background-size: 480px 400px;
   background-position: right -60px top -40px;
   mask-image: linear-gradient(100deg, transparent 42%, black 88%);
@@ -67,8 +67,6 @@
   gap: var(--space-10);
   align-items: center;
   padding: var(--space-12) var(--space-12) var(--space-10);
-  --mark-bg: var(--tl-gold-500);
-  --mark-fg: var(--tl-navy-800);
 }
 
 .hero-copy {
@@ -101,7 +99,7 @@
 .hero :focus-visible,
 .promo-band :focus-visible,
 .account-hero :focus-visible {
-  outline-color: var(--tl-gold-400);
+  outline-color: var(--tl-gold-300);
 }
 
 .hero-trust {
@@ -120,7 +118,7 @@
 }
 
 .hero-trust .icon {
-  color: var(--tl-gold-400);
+  color: var(--tl-brand-gold);
 }
 
 .hero-sample {
@@ -283,9 +281,9 @@
   text-transform: uppercase;
 }
 
+/* TrueLink CI: accent colour as a left border or a tinted icon container, never a tinted card. */
 .brand-card-empty {
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
-  background: linear-gradient(120deg, var(--accent-soft), var(--surface) 55%);
+  border-left: 4px solid var(--nav-indicator);
 }
 
 .brand-card-icon {
@@ -294,9 +292,9 @@
   flex: none;
   width: 60px;
   height: 60px;
-  border-radius: 18px;
-  background: var(--accent);
-  color: var(--accent-contrast);
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 .brand-card-complete {
@@ -598,7 +596,7 @@ button.gap-chip:hover {
   flex: none;
   width: 52px;
   height: 52px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   background: var(--primary);
   color: var(--primary-contrast);
   box-shadow: var(--shadow-sm);
@@ -1185,8 +1183,9 @@ button.gap-chip:hover {
   gap: 12px;
   padding: var(--space-4);
   border-radius: var(--radius-md);
-  background: linear-gradient(160deg, var(--primary-soft), var(--surface) 70%);
-  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
 }
 
 .ai-card-head {
@@ -1337,7 +1336,7 @@ button.gap-chip:hover {
   color: #1a0dab;
 }
 
-:root[data-theme='dark'] .serp-title {
+:root[data-tl-theme='dark'] .serp-title {
   color: #99c3ff;
 }
 
@@ -1422,15 +1421,11 @@ button.gap-chip:hover {
   flex: none;
   width: 48px;
   height: 48px;
-  border-radius: 14px;
-  background: var(--tl-navy-800);
+  border-radius: var(--radius-lg);
+  background: var(--tl-brand-navy);
   color: #fff;
   font-weight: 800;
   font-size: 20px;
-}
-
-:root[data-theme='dark'] .entity-avatar {
-  background: var(--primary);
 }
 
 .entity-name {
@@ -1630,8 +1625,9 @@ button.gap-chip:hover {
   gap: 14px;
   padding: var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--accent-soft);
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--nav-indicator);
   font-size: var(--fs-sm);
   color: var(--text-2);
   flex-wrap: wrap;
@@ -1649,9 +1645,9 @@ button.gap-chip:hover {
   flex: none;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  background: var(--accent);
-  color: var(--accent-contrast);
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 .cdn-title {
@@ -2151,7 +2147,7 @@ button.gap-chip:hover {
 
 .account-status .icon {
   margin-top: 2px;
-  color: var(--tl-gold-400);
+  color: var(--tl-brand-gold);
 }
 
 .benefit-grid {
@@ -2171,7 +2167,7 @@ button.gap-chip:hover {
   place-items: center;
   width: 48px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   background: var(--primary);
   color: var(--primary-contrast);
 }
@@ -2545,7 +2541,7 @@ button.gap-chip:hover {
   .template-badge {
     width: 44px;
     height: 44px;
-    border-radius: 14px;
+    border-radius: var(--radius-lg);
   }
 
   .editor-view-tabs .segmented .tab {
@@ -2604,5 +2600,189 @@ button.gap-chip:hover {
 
   .step-actions .btn {
     flex: 1;
+  }
+}
+
+/* ================= TrueLink cloud drafts (Account) ================= */
+.cloud-card {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.cloud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.cloud-head h2 {
+  font-size: var(--fs-xl);
+}
+
+.cloud-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.cloud-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+
+.cloud-note .icon {
+  flex: none;
+  margin-top: 3px;
+}
+
+.cloud-signin {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  color: var(--text-2);
+}
+
+.cloud-empty {
+  padding: var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+.sync-list {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.sync-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'main chip delete'
+    'actions actions actions';
+  align-items: center;
+  gap: 10px var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+}
+
+.sync-row + .sync-row {
+  border-top: 1px solid var(--border);
+}
+
+/* A conflict gets the CI accent treatment: a left border, never a tinted row. */
+.sync-conflict {
+  box-shadow: inset 3px 0 0 var(--danger-fill);
+}
+
+.sync-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.sync-row > .chip {
+  grid-area: chip;
+}
+
+.sync-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-meta {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+
+.sync-actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-actions:empty {
+  display: none;
+}
+
+.sync-delete {
+  grid-area: delete;
+}
+
+.publish-box {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.publish-box h3 {
+  font-size: var(--fs-lg);
+}
+
+.publish-current {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.publish-form {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px var(--space-3);
+  max-width: 640px;
+}
+
+.publish-form label {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.publish-form .btn {
+  grid-column: 2;
+  justify-self: start;
+}
+
+@media (min-width: 900px) {
+  .sync-row {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-areas: 'main chip actions delete';
+  }
+
+  .sync-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 767px) {
+  .publish-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .publish-form .btn {
+    grid-column: 1;
   }
 }

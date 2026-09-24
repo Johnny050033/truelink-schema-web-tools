@@ -29,8 +29,8 @@ pnpm check        # 核心庫、schema-document 與 App 的型別檢查、測試
 | Schema 編輯器 | 表單與 JSON-LD 雙模式（不會丟掉未知屬性）、完整度分數環、健檢清單（可直接跳到欄位）、搜尋結果示意、程式碼與安裝步驟、文件狀態 |
 | 我的 Schema | 搜尋、依類型篩選、完整度進度條；接近本機上限時提示 |
 | 匯入與匯出 | 貼上 JSON-LD 或整段 HTML（以 DOMParser 解析，內容不會執行），先預覽再匯入；合併成 `@graph`；備份與還原 |
-| 帳號與同步 | 註冊導流頁：目前狀態、TrueLink 權益、本機與帳號比較表、隱私承諾 |
-| 設定 | 淺色／深色／跟隨系統、繁中／English、安裝 App、本機儲存用量、清除資料 |
+| 帳號與同步 | 註冊導流頁：目前狀態、TrueLink 權益、本機與帳號比較表、隱私承諾。部署在 TrueLink 網站並設定 host 時，另有「TrueLink 雲端草稿」：逐份上傳、已連結文件自動跟上雲端、衝突三選一、確認後發布到 TrueLink |
+| 設定 | 淺色（預設）／深色／跟隨系統、繁中／English、安裝 App、本機儲存用量、清除資料 |
 
 範本包括：組織／品牌、地方商家、人物、網站、服務、產品、文章、FAQ、活動、麵包屑，
 以及保留任意類型的「其他類型」。
@@ -56,18 +56,41 @@ pnpm check        # 核心庫、schema-document 與 App 的型別檢查、測試
 | `VITE_TRUELINK_SIGNUP_URL` | 「註冊 TrueLink 帳號」按鈕（繁中） | `https://truelink-group.com/` |
 | `VITE_TRUELINK_SIGNUP_URL_EN` | 英文版註冊頁 | `https://truelink-group.com/en/` |
 | `VITE_TRUELINK_APP_URL` | 「開啟 TrueLink 網頁工具」 | 官網首頁 |
-| `VITE_BRAND_LOGO_URL` | 經授權的官方標誌，只接受同源路徑，例如 `./brand/truelink-logo.svg` | 以文字顯示「TrueLink」 |
+| `VITE_TRUELINK_HOST_URL` | TrueLink host 頁面的**同網域路徑**（例如 `/studio/host.html`），設定後啟用雲端草稿 | 未設定＝純本機模式 |
 
 範例：`VITE_TRUELINK_SIGNUP_URL=https://truelink-group.com/<註冊頁> pnpm app:build`
 
 - 目前的註冊網址預設為官網首頁，**上線前請改成實際的註冊頁**。如果註冊是免費的，
   可以把 `src/i18n/messages.ts` 裡的 `account.cta.register` 改成「免費註冊」。
-- 色票集中在 `src/styles/tokens.css`，依 CI 簡報的深藍／綠／金方向設計，並檢查過
-  WCAG AA 對比。請再對照官方 CI 確認色碼。
-- App 圖示是 Schema Studio 自己的產品圖示（大括號加節點），**沒有**模仿 TrueLink
-  商標。官方標誌請放到 `public/brand/`，再設定 `VITE_BRAND_LOGO_URL`。
-- 圖示原始檔在 `public/icons/icon.svg` 和 `scripts/icon-maskable.svg`；要重產 PNG，
-  執行 `scripts/render-icons.mjs`（需要本機的 Playwright 與 Chromium，說明寫在檔案開頭）。
+### 品牌規範（對齊 TrueLink 官方 CI）
+
+- **色票**：`src/styles/tokens.css` 的基礎色階照抄官方設計系統 `tl-tokens.css`
+  （品牌海軍藍 `#1B4C92`、綠 `#2EA572`、金 `#E0B84C`，UI 金 `#D4AF37`）。元件只使用語意層
+  變數（`--primary`、`--accent`…）。官方色票更新時，請同步這個檔案。
+- **主題**：預設淺色，不跟隨系統深色（與官網 `tl-theme.js` 相同）；深色以
+  `<html data-tl-theme="dark">` 套用。和 TrueLink 網站部署在同一個網域時，首次開啟會沿用
+  網站的 `tl_theme` 選擇（只讀取，不會寫回）。
+- **按鈕**：主要按鈕是海軍藍；金色只用在每個畫面**唯一**的主要行動（例如首頁的「從品牌
+  資料開始」、帳號頁的「註冊 TrueLink 帳號」）。控制項圓角 6px、卡片 12px。
+- **強調色用法**：只用 3–4px 左邊框或淡色圖示底，不做整張卡片染色或漸層。
+- **標誌**：導覽列使用官方盾牌加「True**Link**」字標（與官網導覽列同一種組法）；深色背景
+  改用官方單色母檔 `shield-mono.svg` 做成的反白版。不要用通用盾牌圖示或純文字取代標誌。
+- **素材來源**：`src/assets/brand/` 的盾牌與 `public/icons/`、`public/favicon.ico` 都從
+  TrueLink 品牌素材庫原封不動複製。`scripts/render-icons.mjs` 只把 512px 圖示縮成 192px
+  （需要本機的 Playwright 與 Chromium，說明寫在檔案開頭）。
+- **商標**：這些素材**不在 MIT 授權範圍內**，詳見根目錄的 [TRADEMARKS.md](../../TRADEMARKS.md)。
+  發布非 TrueLink 營運的分支時，請換成自己的名稱與圖示。
+
+## TrueLink 雲端草稿（host bridge）
+
+- 只有在 TrueLink 網站同網域部署、並設定 `VITE_TRUELINK_HOST_URL` 時才會出現。Studio 以隱藏 iframe
+  連到 host 頁面，透過 [`truelink-schema-cloud`](../../packages/cloud-client/README.md) 協定交換
+  `SchemaDocumentRecord`；Studio 不載入 Firebase、不持有權杖，CSP 仍是 `connect-src 'self'`。
+- 上傳一律逐份手動；已連結的文件在這台裝置沒有修改時，會自動套用 TrueLink 上的新版本（例如在
+  網頁工具或其他裝置改過）；兩邊都有修改時讓使用者選擇，覆蓋前都會確認。
+- 發布只接受已同步的組織、地方商家或人物（可加一份常見問答），並固定在使用者看過的版本。
+- TrueLink 升級共用核心後，舊版分頁會被要求重新整理才能同步。
+- 同步紀錄存在 `truelink-schema-studio:v1:sync`（每份文件最後確認的雲端版本號與內容雜湊）。
 
 ## 本機儲存與資料安全
 
@@ -93,8 +116,10 @@ pnpm check        # 核心庫、schema-document 與 App 的型別檢查、測試
 | iPhone／iPad（Safari） | ✅ 可「加入主畫面」；設定頁有操作說明 |
 | App Store／Google Play | ⏳ 未封裝。建議以 Capacitor 包裝同一份 `dist`，需要開發者帳號與實機測試 |
 | 桌面安裝檔 | ⏳ 未封裝。可評估 Tauri；需要簽章與實機測試 |
-| 瀏覽器擴充 | ⏳ 依 PR #1 的規劃，可以沿用 `truelink-schema-document` 與本 App 的工作頁 |
+| 瀏覽器擴充 | ⏳ 可以沿用 `truelink-schema-document` 與本 App 的工作頁；整體規劃見 [多平台策略](../../docs/PLATFORM_STRATEGY.zh-TW.md) |
 
 部署：`dist/` 是純靜態檔案，採用 hash 路由與相對路徑，可以放在任何子路徑
 （例如 Firebase Hosting、GitHub Pages、Netlify），不需要改寫規則。更新時新版 service
-worker 會先等待，由使用者點「重新整理」才切換，不會中斷正在編輯的內容。
+worker 會先等待，由使用者點「重新整理」才切換，不會中斷正在編輯的內容。Service worker 只
+處理 Studio 自己的檔案，不會攔截同網域的其他頁面（例如 TrueLink host 頁面）。多平台與部署規劃見
+[多平台策略](../../docs/PLATFORM_STRATEGY.zh-TW.md)。

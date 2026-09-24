@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { detectLocale } from './i18n';
-import { browserStorage } from './lib/persistence';
+import { browserStorage, readSharedTheme } from './lib/persistence';
 import { listenForInstallPrompt, registerServiceWorker } from './lib/pwa';
 import { installedSignal, updateSignal } from './lib/signals';
 import { createAppStore, initStore } from './lib/store';
@@ -12,7 +12,8 @@ import './styles/components.css';
 import './styles/layout.css';
 import './styles/pages.css';
 
-const store = initStore(createAppStore({ storage: browserStorage(), locale: detectLocale() }));
+const storage = browserStorage();
+const store = initStore(createAppStore({ storage, locale: detectLocale(), theme: readSharedTheme(storage) }));
 
 window.addEventListener('storage', (event) => store.applyExternal(event.key, event.newValue));
 window.addEventListener('pagehide', () => store.flush());

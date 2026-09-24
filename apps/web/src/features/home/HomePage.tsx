@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { getTemplate, type TemplateId } from 'truelink-schema-document';
 import { LOCAL_LIMITS } from '../../config';
-import { Icon, StudioMark } from '../../components/Icon';
+import { BrandShield } from '../../components/Brand';
+import { Icon } from '../../components/Icon';
 import { LinkButton, ScoreRing } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import { auditFor, brandAudit, isBrandStarted } from '../../lib/docs';
@@ -18,7 +19,7 @@ function Hero() {
     <section className="hero" aria-labelledby="home-title">
       <div className="hero-copy">
         <p className="eyebrow">
-          <StudioMark size={22} />
+          <BrandShield size={24} tone="reverse" />
           {t('home.eyebrow')}
         </p>
         <h1 id="home-title">{t('home.title')}</h1>
@@ -177,13 +178,13 @@ export function PromoBand() {
     <section className="promo-band" aria-labelledby="promo-title">
       <div className="promo-copy">
         <p className="eyebrow eyebrow-gold">
-          <Icon name="shield" size={16} />
+          <BrandShield size={24} tone="reverse" />
           TrueLink · The AI Trust Engine
         </p>
         <h2 id="promo-title">{t('home.promo.title')}</h2>
         <p>{t('home.promo.body')}</p>
       </div>
-      <LinkButton variant="accent" size="lg" href={hrefFor({ name: 'account' })} iconEnd="arrow-right">
+      <LinkButton variant="inverse" size="lg" href={hrefFor({ name: 'account' })} iconEnd="arrow-right">
         {t('home.promo.cta')}
       </LinkButton>
     </section>

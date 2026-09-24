@@ -1,11 +1,12 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { BRAND_LOGO_URL } from '../../config';
-import { Icon, StudioMark, type IconName } from '../../components/Icon';
+import { BrandLockup, BrandShield } from '../../components/Brand';
+import { Icon, type IconName } from '../../components/Icon';
 import { Button, LinkButton, Notice } from '../../components/ui';
 import { useI18n, type MessageKey } from '../../i18n';
 import { downloadBackup, isBrandStarted, brandAudit } from '../../lib/docs';
 import { promptInstall, useInstallState, useOnline } from '../../lib/pwa';
 import { hrefFor, type Route } from '../../lib/router';
+import { cloudSignal } from '../../lib/cloud';
 import { updateSignal, useSignal } from '../../lib/signals';
 import { getStore, useAppState } from '../../lib/store';
 import type { ThemePreference } from '../../lib/persistence';
@@ -30,19 +31,6 @@ function isActive(item: Route, current: Route): boolean {
   return item.name === 'library' && (current.name === 'doc' || current.name === 'templates');
 }
 
-function BrandLockup({ compact }: { compact?: boolean }) {
-  const { t } = useI18n();
-  return (
-    <a className={`brand-lockup${compact ? ' brand-lockup-compact' : ''}`} href={hrefFor({ name: 'home' })}>
-      <StudioMark size={compact ? 30 : 34} />
-      <span className="brand-text">
-        {BRAND_LOGO_URL ? <img src={BRAND_LOGO_URL} alt="TrueLink" className="brand-logo" /> : <strong>TrueLink</strong>}
-        <span>{t('app.name')}</span>
-      </span>
-    </a>
-  );
-}
-
 function Sidebar({ route }: { route: Route }) {
   const { t } = useI18n();
   const docCount = useAppState((state) => state.docs.length);
@@ -50,8 +38,8 @@ function Sidebar({ route }: { route: Route }) {
   const brandScore = isBrandStarted(brand) ? brandAudit(brand).score : undefined;
   return (
     <aside className="sidebar">
-      <BrandLockup />
-      <LinkButton variant="accent" icon="plus" block href={hrefFor({ name: 'templates' })} className="sidebar-create">
+      <BrandLockup href={hrefFor({ name: 'home' })} />
+      <LinkButton variant="primary" icon="plus" block href={hrefFor({ name: 'templates' })} className="sidebar-create">
         {t('nav.createSchema')}
       </LinkButton>
       <nav aria-label={t('nav.label')} className="sidebar-nav">
@@ -71,7 +59,7 @@ function Sidebar({ route }: { route: Route }) {
       <div className="sidebar-foot">
         <div className="sidebar-promo">
           <p className="sidebar-promo-title">
-            <Icon name="shield" size={18} />
+            <BrandShield size={24} />
             {t('nav.promo.title')}
           </p>
           <p>{t('nav.promo.body')}</p>
@@ -89,7 +77,7 @@ function Sidebar({ route }: { route: Route }) {
   );
 }
 
-const THEME_ORDER: readonly ThemePreference[] = ['system', 'light', 'dark'];
+const THEME_ORDER: readonly ThemePreference[] = ['light', 'dark', 'system'];
 const THEME_ICON: Record<ThemePreference, IconName> = { system: 'monitor', light: 'sun', dark: 'moon' };
 
 function TopBar({ route }: { route: Route }) {
@@ -100,11 +88,12 @@ function TopBar({ route }: { route: Route }) {
   const current: NavItem | undefined = route.name === 'templates' ? { route, label: 'nav.createSchema', icon: 'plus' } : NAV.find((item) => isActive(item.route, route));
   const store = getStore();
   const nextTheme = THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length]!;
+  const signedIn = useSignal(cloudSignal).phase === 'ready';
   return (
     <header className="topbar">
       <div className="topbar-start">
         <div className="topbar-mobile-brand">
-          <BrandLockup compact />
+          <BrandLockup href={hrefFor({ name: 'home' })} compact />
         </div>
         {current ? (
           <p className="topbar-section">
@@ -144,8 +133,8 @@ function TopBar({ route }: { route: Route }) {
         >
           {t('top.languageShort')}
         </button>
-        <LinkButton variant="accent" size="sm" href={hrefFor({ name: 'account' })} className="topbar-join" icon="shield">
-          {t('top.join')}
+        <LinkButton variant="secondary" size="sm" href={hrefFor({ name: 'account' })} className="topbar-join" icon="user">
+          {t(signedIn ? 'top.account' : 'top.join')}
         </LinkButton>
       </div>
     </header>
@@ -192,7 +181,7 @@ function StorageNotices() {
   return (
     <div className="shell-notices">
       {update ? (
-        <Notice tone="gold" icon="refresh" action={<Button size="sm" variant="accent" onClick={update}>{t('update.reload')}</Button>}>
+        <Notice tone="gold" icon="refresh" action={<Button size="sm" variant="primary" onClick={update}>{t('update.reload')}</Button>}>
           {t('update.ready')}
         </Notice>
       ) : null}
