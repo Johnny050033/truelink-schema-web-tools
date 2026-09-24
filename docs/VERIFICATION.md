@@ -25,3 +25,111 @@ does not bypass rejection. Invalid/deep trees are never passed to the serializer
 Not verified: real-browser matrix, native installers, full Schema.org validation,
 production security certification, npm registry publication or cloud synchronization.
 The public repository and locally packed library are not claims of those capabilities.
+
+# Schema Studio app and schema-document package — 2026-09-24
+
+Scope: new `packages/schema-document` and `apps/web` (PWA) workspaces, core library
+subpath exports. No backend, credentials, analytics, deployment config or SaaS code.
+
+Environment: Node.js 22.22.2, pnpm 11.19.0, TypeScript 7.0.2, Vitest 5.0.0, Vite 8.3.0,
+React 19.3.0, headless Chromium (Playwright 1.56 browser build 1194) on Linux.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm check` (core + all workspaces) | PASS |
+| Core library tests / built-entry smoke | 67/67; 4/4 (now includes `./schema` and `./embed` subpaths) |
+| `truelink-schema-document` tests | 72/72 (paths, pruning, script escaping, bounded import, audit, templates, descriptions) |
+| `apps/web` tests | 25/25 (storage validation, store limits and quota handling, backups, routing, XSS rendering, link config, bilingual copy) |
+| Production build | PASS; generated `sw.js` precaches every emitted and public file; CSP meta injected |
+| Scripted browser walk-through (desktop 1440×900, mobile 390×844, dark mode) | Brand wizard, editor (form, JSON, checks, code, copy + suggestion card), import preview, library, account, settings and English UI: no console errors or CSP violations. Backup download/restore was covered by unit tests, not the browser script |
+| Persistence | Documents survive reload |
+| Offline | After the service worker activates, an offline reload renders the app |
+| Dev server | Loads without console errors |
+
+Not verified: installation prompts on real Android/iOS/desktop devices, Safari and
+Firefox rendering, screen-reader passes, native store packaging, TrueLink sign-up URL
+(defaults to the public homepage until configured), and the official brand colour codes
+(tokens follow the CI brief's navy/green/gold direction and need confirmation).
+
+# TrueLink CI alignment, shared contract and host bridge — 2026-09-24 (second pass)
+
+Scope: official TrueLink design tokens and brand assets in Schema Studio; the
+`SchemaDocumentRecord` contract and TrueLink web tool format conversion; the new
+`packages/cloud-client` (`truelink-schema-cloud`) host-bridge protocol; Studio cloud
+drafts, live change handling and core-version gating; browser builds and conformance
+cases of the shared core; CI and release workflows. No TrueLink backend, host page,
+credentials or deployment is included or was changed.
+
+Environment: Node.js 22.22.2, pnpm 11.19.0, TypeScript 7.0.2, Vitest 5.0.0, Vite 8.3.0,
+headless Chromium (Playwright 1.56 browser build 1194) on Linux.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm check` (core + all workspaces) | PASS |
+| Core library tests / built-entry smoke | 67/67; 4/4 |
+| `truelink-schema-document` tests | 89/89 (adds record validation, web tool format round trips, conformance cases, core version) |
+| Bundles of the shared core | global script, ES module and CommonJS file built; 5/5 smoke checks (version banner, script escaping in a bare VM, format round trip, ESM API, `require()`) |
+| Host-page bundle of `truelink-schema-cloud` | global script and ES module built; 3/3 smoke checks in a bare VM (exports, handshake with `minCoreVersion`, save round trip) |
+| `truelink-schema-cloud` tests | 19/19 (handshake, timeouts, sign-in URL origin, revisions and conflicts, idempotency, quota, request validation, hidden host errors, publishing rules, change notices, minimum core version, window transport origin checks) |
+| `apps/web` tests | 39/39 (adds theme defaults, host-path validation, explicit sync, conflicts, auto-apply of unchanged linked documents, publishing, outdated tabs) |
+| `pnpm pack` of both packages | PASS; `workspace:*` resolves to the real version |
+| Browser walk-through, standalone build | desktop, mobile and dark screens, brand wizard, editor, import, library, account, settings, English UI, offline reload: no console errors |
+| Theme contract in the browser | OS dark mode alone stays light; a same-origin `tl_theme=dark` seeds the first run; a saved Studio choice wins |
+| Browser walk-through with a demo host page (QA only, not committed) | upload → synced; publish with confirmation and official score; later local edit shows as local changes; signed-out, mobile and dark states; a simulated save in another TrueLink tool updates the open Studio automatically; an outdated tab is asked to reload; no console errors |
+| Service worker scope | fixed: navigations to other same-origin pages (e.g. the host page) are no longer answered with the Studio shell; offline reload still works |
+
+Not verified: a real TrueLink host page, backend functions, database rules or deployment
+(not implemented in this repository); GitHub Actions workflows (added, not yet run on
+GitHub); Safari, Firefox and real mobile devices; screen-reader passes.
+
+# Seven languages and the GitHub community pack — 2026-09-24 (third pass)
+
+Scope:
+- Localization of the shared core (0.3.0) and Schema Studio into English, Traditional
+  Chinese, Simplified Chinese, Japanese, Spanish, Brazilian Portuguese and Indonesian.
+- English-first defaults and language detection.
+- Source fixes reported by the translators.
+- The GitHub community files and the Pages workflow.
+
+No TrueLink backend was changed.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm check` (core + all workspaces) | PASS |
+| Core library tests / built-entry smoke | 67/67; 4/4 |
+| `truelink-schema-document` tests | 112/112 |
+| &nbsp;&nbsp;↳ extraction | no text built outside the catalog helpers |
+| &nbsp;&nbsp;↳ coverage | every template label, check message and description sentence resolves through a catalog |
+| &nbsp;&nbsp;↳ catalogs | all catalogs valid; translated output has no unfilled slots |
+| Core catalogs | 525 English source texts; zh-CN 530/530 (keyed by Traditional Chinese), ja, es, pt-BR and id 525/525 |
+| Studio catalogs | 427 messages plus 11 optional plural forms; every locale 427/427 |
+| Bundle smoke of the shared core | 6/6, including translation through `registerCatalog` in a bare VM |
+| `truelink-schema-cloud` tests / bundle smoke | 19/19; 3/3 |
+| `apps/web` tests | 51/51 |
+| &nbsp;&nbsp;↳ locale | locale detection; pre-render `lang` script in step with `LOCALE_INFO` |
+| &nbsp;&nbsp;↳ loading | lazy loading with fallback |
+| &nbsp;&nbsp;↳ plurals | plural forms |
+| &nbsp;&nbsp;↳ links | localized Google documentation links |
+| zh-TW / English output vs 0.2.0 (before the fixes below) | byte-identical over 10,560 generated describe and audit cases, except capitalising "Official profiles on …" |
+| Intentional output changes after translator review | see the list below |
+| Layout QA: 7 languages × desktop 1440 px and mobile 390 px × 8 screens, headless Chromium | no horizontal scrolling, clipped or off-screen controls, unfilled `{slots}` or console errors; `<html lang>` matches the language |
+| &nbsp;&nbsp;↳ fixes from the first run | long button labels now wrap on phones; the bottom bar uses a short account label and fixed columns; page grids no longer grow to fit wide tables |
+
+Intentional output changes after translator review:
+
+- zh-TW article sentences with an author but no publisher, and service sentences without a
+  provider, now read as complete sentences.
+- One-question FAQs no longer say "such as".
+- The generic template names itself "a general Schema.org item (Thing)".
+- Raw type names (MusicEvent) and acronyms (an NGO) keep their spelling.
+- Latin-script addresses keep Western order in Chinese and Japanese.
+- The default currency follows the document's country, then the interface language.
+- 16 countries and 14 currencies were added.
+
+Not verified:
+
+- Native-speaker review of the five translated languages. They are labelled Beta in the
+  app.
+- The Pages deployment. The workflow runs after merge, once Pages is enabled with the
+  GitHub Actions source.
+- Safari, Firefox, real mobile devices and screen readers.

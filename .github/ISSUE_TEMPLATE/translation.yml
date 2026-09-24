@@ -1,0 +1,45 @@
+name: Translation improvement
+description: Report a wrong, awkward or missing translation.
+title: "[Translation]: "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Translations other than English and Traditional Chinese were made with AI assistance and need native-speaker review. You can also edit the catalogs directly; see [CONTRIBUTING.md](https://github.com/Johnny050033/truelink-schema-web-tools/blob/main/CONTRIBUTING.md#translations).
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      options:
+        - 简体中文 (zh-CN)
+        - 日本語 (ja)
+        - Español (es)
+        - Português (Brasil) (pt-BR)
+        - Bahasa Indonesia (id)
+        - 繁體中文 (zh-TW)
+        - English (en)
+        - A new language
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where does the text appear?
+      placeholder: e.g. Settings page, Event template, a warning after entering a URL
+  - type: textarea
+    id: current
+    attributes:
+      label: Current text
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested text
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why (optional)

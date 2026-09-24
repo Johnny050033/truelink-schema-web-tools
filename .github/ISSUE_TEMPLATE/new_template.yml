@@ -1,0 +1,35 @@
+name: New Schema.org template
+description: Propose a template for a Schema.org type Schema Studio doesn't cover yet.
+title: "[Template]: "
+labels: ["template"]
+body:
+  - type: input
+    id: type
+    attributes:
+      label: Schema.org type
+      placeholder: e.g. Course, Recipe, SoftwareApplication
+    validations:
+      required: true
+  - type: textarea
+    id: use
+    attributes:
+      label: Who needs it, and for what?
+    validations:
+      required: true
+  - type: textarea
+    id: properties
+    attributes:
+      label: Key properties
+      description: Which properties matter most? Mark the ones a search engine documents as required.
+    validations:
+      required: true
+  - type: textarea
+    id: docs
+    attributes:
+      label: Documentation
+      description: Links to https://schema.org/… and, if it exists, the Google Search Central page for this type.
+  - type: textarea
+    id: example
+    attributes:
+      label: Example JSON-LD (synthetic only)
+      render: json

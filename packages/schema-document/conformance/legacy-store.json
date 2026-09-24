@@ -1,0 +1,112 @@
+{
+  "description": "Conformance cases for exchanging data with the TrueLink web tool (tools/schema). Every consumer of truelink-schema-document should pass these after upgrading the core: fromLegacyStoreObj must pick the listed templates, and toLegacyStoreObj(fromLegacyStoreObj(x)) must return x's content with the normalised whitelist.",
+  "coreVersion": "0.3.0",
+  "cases": [
+    {
+      "name": "local business with FAQ and domain whitelist",
+      "storeObj": {
+        "mainSchema": {
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "@id": "https://example.com/#organization",
+          "name": "晨光示範咖啡",
+          "url": "https://example.com/",
+          "telephone": "+886-2-2345-6789",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "示範路 1 號",
+            "addressLocality": "大安區",
+            "addressRegion": "臺北市",
+            "addressCountry": "TW"
+          },
+          "sameAs": [
+            "https://www.facebook.com/example"
+          ]
+        },
+        "faqs": [
+          {
+            "@type": "Question",
+            "name": "可以開立統一發票嗎？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "可以。"
+            }
+          }
+        ],
+        "type": "LocalBusiness",
+        "whitelistedDomains": "example.com\nwww.example.com"
+      },
+      "expect": {
+        "mainTemplate": "local-business",
+        "faqTemplate": "faq",
+        "whitelistedDomains": [
+          "example.com",
+          "www.example.com"
+        ],
+        "roundTripWhitelist": "example.com, www.example.com"
+      }
+    },
+    {
+      "name": "person without FAQ",
+      "storeObj": {
+        "mainSchema": {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          "name": "王小明",
+          "url": "https://example.org/",
+          "sameAs": [
+            "https://www.linkedin.com/in/example"
+          ]
+        },
+        "faqs": [],
+        "type": "Person",
+        "whitelistedDomains": ""
+      },
+      "expect": {
+        "mainTemplate": "person",
+        "faqTemplate": null,
+        "whitelistedDomains": [],
+        "roundTripWhitelist": ""
+      }
+    },
+    {
+      "name": "NGO maps to the organization template",
+      "storeObj": {
+        "mainSchema": {
+          "@context": "https://schema.org",
+          "@type": "NGO",
+          "name": "示範協會",
+          "url": "https://example.net/",
+          "nonprofitStatus": "NonprofitType"
+        },
+        "faqs": [],
+        "type": "NGO",
+        "whitelistedDomains": "example.net"
+      },
+      "expect": {
+        "mainTemplate": "organization",
+        "faqTemplate": null,
+        "whitelistedDomains": [
+          "example.net"
+        ],
+        "roundTripWhitelist": "example.net"
+      }
+    },
+    {
+      "name": "entity type taken from the stored type when missing",
+      "storeObj": {
+        "mainSchema": {
+          "@context": "https://schema.org",
+          "name": "示範品牌"
+        },
+        "type": "Organization"
+      },
+      "expect": {
+        "mainTemplate": "organization",
+        "faqTemplate": null,
+        "whitelistedDomains": [],
+        "roundTripWhitelist": ""
+      }
+    }
+  ]
+}

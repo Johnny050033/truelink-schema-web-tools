@@ -7,7 +7,11 @@
   "type": "module",
   "packageManager": "pnpm@11.19.0",
   "engines": { "node": ">=22.13.0" },
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "exports": {
+    ".": { "source": "./src/index.ts", "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./schema": { "source": "./src/schema.ts", "types": "./dist/schema.d.ts", "import": "./dist/schema.js" },
+    "./embed": { "source": "./src/embed.ts", "types": "./dist/embed.d.ts", "import": "./dist/embed.js" }
+  },
   "files": ["dist", "src", "docs", "README.md", "LICENSE", "SECURITY.md"],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -15,7 +19,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke:build": "node test/build-smoke.mjs",
-    "check": "pnpm typecheck && pnpm test && pnpm build && pnpm smoke:build"
+    "check:core": "pnpm typecheck && pnpm test && pnpm build && pnpm smoke:build",
+    "check": "pnpm check:core && pnpm -r run check",
+    "dev": "pnpm --filter truelink-schema-studio dev",
+    "app:build": "pnpm --filter truelink-schema-studio build",
+    "app:preview": "pnpm --filter truelink-schema-studio preview"
   },
   "dependencies": { "css-tree": "3.2.1", "parse5": "8.0.1" },
   "devDependencies": {

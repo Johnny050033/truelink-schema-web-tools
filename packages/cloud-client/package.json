@@ -1,0 +1,37 @@
+{
+  "name": "truelink-schema-cloud",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Host-bridge protocol for syncing Schema documents with a TrueLink host: client, host dispatcher and an in-memory reference host.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./global": "./dist/bundles/truelink-schema-cloud.global.js",
+    "./bundle": "./dist/bundles/truelink-schema-cloud.mjs"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && vite build --config vite.bundle.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "smoke": "node test/bundle-smoke.mjs",
+    "check": "pnpm typecheck && pnpm test && pnpm build && pnpm smoke"
+  },
+  "dependencies": {
+    "truelink-schema-document": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "vitest": "5.0.0"
+  }
+}
