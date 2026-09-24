@@ -10,24 +10,28 @@ session 或協作者不必重讀對話就能接手。
 
 | 項目 | 狀態 |
 | --- | --- |
-| `main` | 已合併 [PR #2](https://github.com/Johnny050033/truelink-schema-web-tools/pull/2)（`1c99b01`），CI 通過 |
+| `main` | 已合併 [PR #2](https://github.com/Johnny050033/truelink-schema-web-tools/pull/2)（`1c99b01`）、[#7](https://github.com/Johnny050033/truelink-schema-web-tools/pull/7)（`55415f9`）、[#8](https://github.com/Johnny050033/truelink-schema-web-tools/pull/8)（`3a0d18f`），每次合併後 CI 都通過 |
 | 共用核心 `truelink-schema-document` | 0.3.0（`CORE_VERSION` 與 package 版本由測試綁定） |
-| GitHub Pages | 擁有者已開啟（Source：GitHub Actions）。本文件所在 PR 合併時的 push 會觸發第一次部署 |
+| GitHub Pages | 擁有者已開啟（Source：GitHub Actions）。PR #2、#7、#8 合併後的部署都成功 |
 | 線上試用版 | https://johnny050033.github.io/truelink-schema-web-tools/ |
 | 翻譯審閱 issue | [#3 日本語](https://github.com/Johnny050033/truelink-schema-web-tools/issues/3)、[#4 Español](https://github.com/Johnny050033/truelink-schema-web-tools/issues/4)、[#5 Português](https://github.com/Johnny050033/truelink-schema-web-tools/issues/5)、[#6 Bahasa Indonesia](https://github.com/Johnny050033/truelink-schema-web-tools/issues/6)（標籤：`translation`、`good first issue`、`help wanted`） |
-| 檢查 | `pnpm check` 全部通過。核心庫 67、共用核心 112、雲端協定 19、Studio 51 項測試；兩個套件的 bundle smoke 6/6、3/3 |
+| 檢查 | `pnpm check` 全部通過。核心庫 67、共用核心 122、雲端協定 26、Studio 56 項測試；建置 smoke 4/4、6/6、3/3 |
+| TrueLink 託管版 | `app.truelink-group.com/studio/`：私有 SaaS repo 已完成整合實作，等待擁有者審查、實機測試與部署授權，**尚未上線**。託管版以本 repo 的 `3fb6ea7` 建置；之後修改 `apps/web`，TrueLink 端要重新建置並同步 |
 
-## 2. 已完成的工作（PR #2 的 commits）
+## 2. 已完成的工作
 
-| Commit | 內容 |
-| --- | --- |
-| `33821a2` | Schema Studio PWA 與 Schema.org 文件套件 |
-| `926061d` | 對齊 TrueLink 官方 CI、共用文件格式 `SchemaDocumentRecord`、雲端協定 `truelink-schema-cloud`、跨工具同步 |
-| `423347f` | 給 TrueLink 其他工具用的 CommonJS 與網頁 bundle |
-| `ffc5a78` | 7 種語言的架構（核心 0.3.0、翻譯目錄、Studio 語言選單），以及 GitHub 曝光套件 |
-| `0ed4cef`、`7b30478`、`7c150ec` | 簡中、日本語、Español、Português (Brasil)、Bahasa Indonesia 翻譯 |
-| `678ced9` | 依翻譯審稿與手機版面 QA 修正（見第 4 節） |
-| `48240a6` | Pages 尚未開啟時跳過部署並留下提示，避免 `main` 出現紅叉 |
+| PR | Commit | 內容 |
+| --- | --- | --- |
+| #2 | `33821a2` | Schema Studio PWA 與 Schema.org 文件套件 |
+| #2 | `926061d` | 對齊 TrueLink 官方 CI、共用文件格式 `SchemaDocumentRecord`、雲端協定 `truelink-schema-cloud`、跨工具同步 |
+| #2 | `423347f` | 給 TrueLink 其他工具用的 CommonJS 與網頁 bundle |
+| #2 | `ffc5a78` | 7 種語言的架構（核心 0.3.0、翻譯目錄、Studio 語言選單），以及 GitHub 曝光套件 |
+| #2 | `0ed4cef`、`7b30478`、`7c150ec` | 簡中、日本語、Español、Português (Brasil)、Bahasa Indonesia 翻譯 |
+| #2 | `678ced9` | 依翻譯審稿與手機版面 QA 修正（見第 4 節） |
+| #2 | `48240a6` | Pages 尚未開啟時跳過部署並留下提示，避免 `main` 出現紅叉 |
+| #7 | `1096875` | 本交接文件、good first issue 連結、多語版面 QA 腳本 |
+| #8 | `b6360f9` | 認證 Schema API（KYC）：共用核心的網域規則、雲端協定的選用方法、Studio 區塊（7 種語言）、英文與繁中說明（見第 9 節） |
+| [#9](https://github.com/Johnny050033/truelink-schema-web-tools/pull/9) | `3fb6ea7` | Studio 的提示訊息、反白按鈕 hover 與幾個不隨主題改變的顏色，改用淺色與深色主題都有定義的語意 token，讓 TrueLink 的深色模式檢查接受託管版。畫面顏色不變 |
 
 ## 3. 重要決策與原因
 
@@ -88,8 +92,8 @@ session 或協作者不必重讀對話就能接手。
 
 | 優先 | 項目 | 說明 |
 | --- | --- | --- |
-| P0 | TrueLink SaaS 整合 | host 頁面 `/studio/host.html`、草稿後端函式、私有草稿的資料庫規則、把 Studio 部署到 `/studio/`、網頁工具改用共用核心 bundle。這些在**私有** SaaS repo 進行。本 session 修改 SaaS 檔案的操作被權限擋下，需要擁有者開放後再做。審查時發現的安全性修正與完整計畫，已另外以私人檔案交給擁有者，**刻意不放在這個公開 repo** |
-| P0 | 確認 Pages 部署 | 合併後在 Actions → Pages 確認 `deploy` 成功，打開線上試用版 |
+| P0 | TrueLink SaaS 整合：審查與上線 | 擁有者開放權限後，已在**私有** SaaS repo 完成實作：host 頁面 `/studio/host.html`（含認證 Schema API 的四個方法）、草稿後端函式、私有草稿的資料庫規則、`/studio/` 的部署檔。剩下擁有者審查、用真實帳號實機測試與部署授權。安全性修正與實作細節記在私有 repo 的交接文件，**刻意不放在這個公開 repo** |
+| P1 | 網頁工具改用共用核心 | `/tools/schema/` 與平台的網域判斷改用共用核心 bundle，讓規則只保留一份（SaaS 端，尚未做） |
 | P1 | 母語審閱 | 追蹤 #3–#6；審閱完成的語言改為 `reviewed` |
 | P1 | SaaS 的圖示 | TL 圖示集缺 9 個（plus、x、check、chevrons、arrows、more、menu、cloud），部署 `/studio/` 前要補齊 |
 | P1 | 託管腳本快取時間 | 建議縮短，讓撤銷與更新更快生效；實際數值待擁有者決定（成本考量） |
@@ -121,6 +125,8 @@ node apps/web/scripts/qa-locales.mjs                # 需要 Playwright；截圖
 - 同意在 SaaS repo 開分支修安全性問題並建草稿後端、host bridge、`/studio/`，Studio 網址為 `app.truelink-group.com/studio/`。
 - 要 GitHub 曝光套件與 Pages 展示版，並支援多國語言，英文優先。
 - 中國大陸市場先放棄；授權操作 GitHub；在額度用完前把紀錄寫回 repo 與 PR。
+- 認證 Schema API（KYC）是核心功能：要整合進開源工具並公開說明，吸引註冊；說明要有繁體中文版。
+- 授權在 SaaS repo 的分支實作 Studio 整合並開 PR 審查；不直接推 `main`／`dev`、不部署、不改正式環境設定或金鑰。
 
 ## 9. 認證 Schema API（KYC）：整合與建議（2026-09-24 追加）
 
@@ -135,10 +141,10 @@ node apps/web/scripts/qa-locales.mjs                # 需要 Playwright；截圖
   - 編輯器的程式碼面板也有說明連結。
 - 公開說明：`docs/VERIFIED_SCHEMA_API.md`（英文）、`docs/VERIFIED_SCHEMA_API.zh-TW.md`，README 導流到主站註冊。
 
-**SaaS 端待做**（需要 SaaS 權限）：
-- host 頁實作上述四個方法，接到平台既有的金鑰建立／更換、KYC 狀態、會員狀態與認證網域清單。
-- KYC 狀態改變時呼叫 `notifyChanged('verification')`。
-- 讓平台改用共用核心的網域規則（CommonJS bundle），網域判斷只保留一份。
+**SaaS 端**（私有 repo）：
+- 已實作，等待審查與部署：host 頁實作上述四個方法，接到平台既有的金鑰建立／更換、KYC 狀態、會員狀態與認證網域清單；
+  KYC 狀態改變時呼叫 `notifyChanged('verification')`。
+- 尚未做：讓平台改用共用核心的網域規則（CommonJS bundle），網域判斷只保留一份。
 
 **建議**：
 1. **網域所有權驗證**：綁定網域時要求 DNS TXT 或 meta 標籤驗證（類似 Google Search Console），讓「認證官網」的主張有技術證據。
