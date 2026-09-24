@@ -1,0 +1,23 @@
+{
+  "name": "truelink-schema-document",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first Schema.org JSON-LD templates, bounded import, safe script serialization and advisory completeness checks.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": { "source": "./src/index.ts", "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}

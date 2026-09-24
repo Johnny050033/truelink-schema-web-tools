@@ -1,8 +1,9 @@
 # Open-source editor + optional hosted schema storage
 
-Status: proposal only. The current release is a TypeScript utility skeleton; it is
-not a complete Schema.org editor, desktop app, sync client, or cloud storage service.
-Nothing here deploys a backend, sends customer data, or changes another repository.
+Status: proposal only. Step 1 (the local-first editor) now exists as the Schema Studio
+PWA in `apps/web`; it is not a sync client, native desktop app or cloud storage service.
+Its sign-up buttons only link to the TrueLink site. Nothing here deploys a backend,
+sends customer data, or changes another repository.
 
 ## Product recommendation
 

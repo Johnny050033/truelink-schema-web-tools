@@ -1,0 +1,31 @@
+{
+  "name": "truelink-schema-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TrueLink Schema Studio: an installable, local-first Schema.org JSON-LD workspace (PWA).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "truelink-schema-document": "workspace:*",
+    "truelink-schema-web-tools": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "vitest": "5.0.0"
+  }
+}

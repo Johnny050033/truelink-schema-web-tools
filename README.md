@@ -1,8 +1,18 @@
 # truelink-schema-web-tools
 
 Independent TypeScript utilities for strict object validation and isolated static
-web embeds. MIT licensed; all fixtures are synthetic. No SaaS source, credentials,
+web embeds, plus **TrueLink Schema Studio**, an installable local-first Schema.org
+editor. MIT licensed; all fixtures are synthetic. No SaaS source, credentials,
 customer data, deployment wiring, or paid services are included.
+
+| Workspace | What it is |
+| --- | --- |
+| `/` (`truelink-schema-web-tools`) | Core library: flat-object validation and the sandboxed static embed (below) |
+| [`packages/schema-document`](packages/schema-document/README.md) | Schema.org JSON-LD templates, bounded import, safe script output and advisory checks |
+| [`apps/web`](apps/web/README.md) | **Schema Studio** PWA: brand-profile wizard, form/JSON-LD editor, live previews, import/export, TrueLink sign-up funnel |
+
+Try the app locally with `pnpm install --frozen-lockfile && pnpm dev`, then open
+<http://localhost:5173>. It works offline once loaded and sends no data to any server.
 
 ## Develop
 
@@ -15,10 +25,11 @@ pnpm install --frozen-lockfile
 pnpm check
 ```
 
-`check` runs TypeScript checks, Vitest tests, and a declaration-producing ESM build.
+`check` runs TypeScript checks, Vitest tests and builds for the core library, then the
+same for every workspace (`packages/*`, `apps/*`); `check:core` covers only the library.
 Use `pnpm test:watch` while developing. Checks run locally; no hosted CI or automatic
-deployment is configured. This initial package is deliberately `private: true` to
-prevent accidental npm publication; the source repository is public.
+deployment is configured. Packages are deliberately `private: true` to prevent
+accidental npm publication; the source repository is public.
 
 To create a locally installable library archive after checking:
 
@@ -27,7 +38,13 @@ pnpm pack --pack-destination artifacts
 # In a consuming project, install the resulting .tgz with pnpm add <archive-path>.
 ```
 
-This is a developer library, not yet a graphical Schema.org editor or desktop installer.
+The library also exposes `truelink-schema-web-tools/schema` and
+`truelink-schema-web-tools/embed` subpaths, so a consumer that only validates objects
+does not bundle the HTML/CSS parsers.
+
+Schema Studio is installable as a PWA on desktop and mobile browsers. Native store
+packages (App Store, Google Play), desktop installers and the browser extension are
+**not** included; see [apps/web/README.md](apps/web/README.md) for the packaging path.
 
 ## Object schema validation
 
@@ -58,10 +75,12 @@ are never required from the client even if the server's schema marks them requir
 ## Optional cloud storage direction (planned, not connected)
 
 The intended product direction is an open-source, local-first Schema editor with
-optional signed-in TrueLink cloud sync. Local import/export remains available;
-cloud data would be private by default, with explicit publishing and access controls.
-This repository currently makes **no network requests to a storage API** and does
-not contain server credentials. No storage service or upload endpoint is implemented.
+optional signed-in TrueLink cloud sync. The local-first editor now exists as Schema
+Studio; local import/export and backups work without an account. Cloud data would be
+private by default, with explicit publishing and access controls. This repository
+currently makes **no network requests to a storage API** and does not contain server
+credentials. No storage service, upload endpoint or account linking is implemented:
+the app's sign-up buttons are plain links to the TrueLink site and carry no data.
 See the [cloud sync roadmap](docs/CLOUD_SYNC_ROADMAP.md) for boundaries and acceptance.
 
 ## Safe static embed profile

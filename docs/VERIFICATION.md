@@ -25,3 +25,28 @@ does not bypass rejection. Invalid/deep trees are never passed to the serializer
 Not verified: real-browser matrix, native installers, full Schema.org validation,
 production security certification, npm registry publication or cloud synchronization.
 The public repository and locally packed library are not claims of those capabilities.
+
+# Schema Studio app and schema-document package — 2026-09-24
+
+Scope: new `packages/schema-document` and `apps/web` (PWA) workspaces, core library
+subpath exports. No backend, credentials, analytics, deployment config or SaaS code.
+
+Environment: Node.js 22.22.2, pnpm 11.19.0, TypeScript 7.0.2, Vitest 5.0.0, Vite 8.3.0,
+React 19.3.0, headless Chromium (Playwright 1.56 browser build 1194) on Linux.
+
+| Check | Actual result |
+| --- | --- |
+| `pnpm check` (core + all workspaces) | PASS |
+| Core library tests / built-entry smoke | 67/67; 4/4 (now includes `./schema` and `./embed` subpaths) |
+| `truelink-schema-document` tests | 72/72 (paths, pruning, script escaping, bounded import, audit, templates, descriptions) |
+| `apps/web` tests | 25/25 (storage validation, store limits and quota handling, backups, routing, XSS rendering, link config, bilingual copy) |
+| Production build | PASS; generated `sw.js` precaches every emitted and public file; CSP meta injected |
+| Scripted browser walk-through (desktop 1440×900, mobile 390×844, dark mode) | Brand wizard, editor (form, JSON, checks, code, copy + suggestion card), import preview, library, account, settings and English UI: no console errors or CSP violations. Backup download/restore was covered by unit tests, not the browser script |
+| Persistence | Documents survive reload |
+| Offline | After the service worker activates, an offline reload renders the app |
+| Dev server | Loads without console errors |
+
+Not verified: installation prompts on real Android/iOS/desktop devices, Safari and
+Firefox rendering, screen-reader passes, native store packaging, TrueLink sign-up URL
+(defaults to the public homepage until configured), and the official brand colour codes
+(tokens follow the CI brief's navy/green/gold direction and need confirmation).
