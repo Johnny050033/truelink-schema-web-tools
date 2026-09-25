@@ -50,7 +50,9 @@ pnpm check        # 核心庫、schema-document 與 App 的型別檢查、測試
 ## 多國語言
 
 介面支援 English、繁體中文、简体中文、日本語、Español、Português (Brasil)、Bahasa Indonesia，
-預設依瀏覽器語言選擇，找不到支援的語言時使用英文。
+預設依瀏覽器語言選擇，找不到支援的語言時使用英文。由 TrueLink 提供的版本（以 `VITE_TRUELINK_HOST_URL` 建置）
+改由 TrueLink 的語言設定（`window.TLLocale`）決定：先用會員在 TrueLink 選的語言，再用 TrueLink 的建議。
+TrueLink 全站只保留一個瀏覽器語言偵測，所以這個版本的建置不含 Studio 自己的偵測。
 
 - **原文**：英文與繁中，打包在主程式裡。
 - **其他語言**：第一次使用時才下載，service worker 會預先快取，離線也能切換。
@@ -70,7 +72,7 @@ pnpm check        # 核心庫、schema-document 與 App 的型別檢查、測試
 | `VITE_TRUELINK_SIGNUP_URL` | 「註冊 TrueLink 帳號」按鈕（繁中） | `https://truelink-group.com/` |
 | `VITE_TRUELINK_SIGNUP_URL_EN` | 英文版註冊頁 | `https://truelink-group.com/en/` |
 | `VITE_TRUELINK_APP_URL` | 「開啟 TrueLink 網頁工具」 | 官網首頁 |
-| `VITE_TRUELINK_HOST_URL` | TrueLink host 頁面的**同網域路徑**（例如 `/studio/host.html`），設定後啟用雲端草稿 | 未設定＝純本機模式 |
+| `VITE_TRUELINK_HOST_URL` | TrueLink host 頁面的**同網域路徑**（例如 `/studio/host.html`），設定後啟用雲端草稿，第一次開啟的語言改由 TrueLink 的語言設定決定 | 未設定＝純本機模式 |
 
 範例：`VITE_TRUELINK_SIGNUP_URL=https://truelink-group.com/<註冊頁> pnpm app:build`
 

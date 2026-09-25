@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runInNewContext } from 'node:vm';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getTemplate, LOCALE_INFO, LOCALES, localize, type Locale } from 'truelink-schema-document';
 import { CATALOG_LOCALES, messageSources, PLURAL_VARIANT, readMessages } from '../scripts/i18n.mjs';
 import { checkCatalog } from '../../../packages/schema-document/scripts/i18n.mjs';
-import { createI18n, detectLocale, ensureLocale, isLocaleReady, matchLocale, translate } from '../src/i18n';
+import { createI18n, detectLocale, ensureLocale, isLocaleReady, matchLocale, preferredLanguages, translate } from '../src/i18n';
 import { sourceMessages } from '../src/i18n/messages';
 
 describe('locale detection', () => {
@@ -36,6 +36,64 @@ describe('locale detection', () => {
       expect(root.lang, locale).toBe(LOCALE_INFO[locale].htmlLang);
       expect(root.attributes['data-tl-theme']).toBe('dark');
     }
+  });
+});
+
+describe('first-run language source', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  const onTrueLink = () => vi.stubEnv('VITE_TRUELINK_HOST_URL', '/studio/host.html');
+  const browserOffLimits = () =>
+    vi.stubGlobal('navigator', {
+      get languages(): never {
+        throw new Error('the TrueLink-hosted Studio must not read navigator.languages');
+      },
+    });
+
+  it('uses the browser languages outside TrueLink', () => {
+    vi.stubGlobal('navigator', { languages: ['ja-JP', 'en'] });
+    expect(preferredLanguages()).toEqual(['ja-JP', 'en']);
+    expect(detectLocale()).toBe('ja');
+  });
+
+  it("on TrueLink, TrueLink's saved language wins, then its suggestion, and the browser is never read directly", () => {
+    onTrueLink();
+    browserOffLimits();
+    const asked: unknown[] = [];
+    vi.stubGlobal('TLLocale', {
+      pref: () => 'zh-TW',
+      suggest: (candidates: readonly string[]) => {
+        asked.push(candidates);
+        return 'ja';
+      },
+    });
+    expect(preferredLanguages()).toEqual(['zh-TW', 'ja']);
+    expect(asked).toEqual([LOCALES]);
+    expect(detectLocale()).toBe('zh-TW');
+  });
+
+  it("on TrueLink, TrueLink's suggestion applies without a saved language; English without TLLocale", () => {
+    onTrueLink();
+    browserOffLimits();
+    vi.stubGlobal('TLLocale', { pref: () => null, suggest: () => 'es' });
+    expect(detectLocale()).toBe('es');
+    vi.stubGlobal('TLLocale', undefined);
+    expect(preferredLanguages()).toEqual([]);
+    expect(detectLocale()).toBe('en');
+  });
+
+  it('a failing TLLocale never breaks start-up', () => {
+    onTrueLink();
+    browserOffLimits();
+    vi.stubGlobal('TLLocale', {
+      pref: () => {
+        throw new Error('storage blocked');
+      },
+    });
+    expect(detectLocale()).toBe('en');
   });
 });
 

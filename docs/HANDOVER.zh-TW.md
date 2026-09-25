@@ -10,13 +10,13 @@ session 或協作者不必重讀對話就能接手。
 
 | 項目 | 狀態 |
 | --- | --- |
-| `main` | 已合併 [PR #2](https://github.com/Johnny050033/truelink-schema-web-tools/pull/2)（`1c99b01`）、[#7](https://github.com/Johnny050033/truelink-schema-web-tools/pull/7)（`55415f9`）、[#8](https://github.com/Johnny050033/truelink-schema-web-tools/pull/8)（`3a0d18f`），每次合併後 CI 都通過 |
+| `main` | 已合併 [PR #2](https://github.com/Johnny050033/truelink-schema-web-tools/pull/2)（`1c99b01`）、[#7](https://github.com/Johnny050033/truelink-schema-web-tools/pull/7)（`55415f9`）、[#8](https://github.com/Johnny050033/truelink-schema-web-tools/pull/8)（`3a0d18f`）、[#9](https://github.com/Johnny050033/truelink-schema-web-tools/pull/9)（`3ba4bc0`），每次合併後 CI 都通過 |
 | 共用核心 `truelink-schema-document` | 0.3.0（`CORE_VERSION` 與 package 版本由測試綁定） |
-| GitHub Pages | 擁有者已開啟（Source：GitHub Actions）。PR #2、#7、#8 合併後的部署都成功 |
+| GitHub Pages | 擁有者已開啟（Source：GitHub Actions）。PR #2、#7、#8、#9 合併後的部署都成功 |
 | 線上試用版 | https://johnny050033.github.io/truelink-schema-web-tools/ |
 | 翻譯審閱 issue | [#3 日本語](https://github.com/Johnny050033/truelink-schema-web-tools/issues/3)、[#4 Español](https://github.com/Johnny050033/truelink-schema-web-tools/issues/4)、[#5 Português](https://github.com/Johnny050033/truelink-schema-web-tools/issues/5)、[#6 Bahasa Indonesia](https://github.com/Johnny050033/truelink-schema-web-tools/issues/6)（標籤：`translation`、`good first issue`、`help wanted`） |
-| 檢查 | `pnpm check` 全部通過。核心庫 67、共用核心 122、雲端協定 26、Studio 56 項測試；建置 smoke 4/4、6/6、3/3 |
-| TrueLink 託管版 | `app.truelink-group.com/studio/`：私有 SaaS repo 已完成整合實作，等待擁有者審查、實機測試與部署授權，**尚未上線**。託管版以本 repo 的 `3fb6ea7` 建置；之後修改 `apps/web`，TrueLink 端要重新建置並同步 |
+| 檢查 | `pnpm check` 全部通過。核心庫 67、共用核心 122、雲端協定 26、Studio 60 項測試；建置 smoke 4/4、6/6、3/3 |
+| TrueLink 託管版 | `app.truelink-group.com/studio/`：私有 SaaS repo 已完成整合實作，等待擁有者審查、實機測試與部署授權，**尚未上線**。託管版以本 repo 的 `0d1fa2a` 建置；之後修改 `apps/web`，TrueLink 端要重新建置並同步（同步腳本會拒收自己讀瀏覽器語言的建置） |
 
 ## 2. 已完成的工作
 
@@ -32,10 +32,12 @@ session 或協作者不必重讀對話就能接手。
 | #7 | `1096875` | 本交接文件、good first issue 連結、多語版面 QA 腳本 |
 | #8 | `b6360f9` | 認證 Schema API（KYC）：共用核心的網域規則、雲端協定的選用方法、Studio 區塊（7 種語言）、英文與繁中說明（見第 9 節） |
 | [#9](https://github.com/Johnny050033/truelink-schema-web-tools/pull/9) | `3fb6ea7` | Studio 的提示訊息、反白按鈕 hover 與幾個不隨主題改變的顏色，改用淺色與深色主題都有定義的語意 token，讓 TrueLink 的深色模式檢查接受託管版。畫面顏色不變 |
+| [#10](https://github.com/Johnny050033/truelink-schema-web-tools/pull/10) | `0d1fa2a` | TrueLink 版 Studio 第一次開啟的語言改由 TrueLink 的語言設定（`window.TLLocale`）決定，建置時移除 Studio 自己的瀏覽器語言偵測（TrueLink 全站只保留一個）；獨立版不變 |
 
 ## 3. 重要決策與原因
 
 - **英文優先**：Schema／SEO 的國際專業社群多用英文。Studio 依瀏覽器語言自動選擇，找不到支援的語言時用英文。
+  TrueLink 版改由 TrueLink 的語言設定決定：先用會員在 TrueLink 選的語言，再用 TrueLink 的建議；TrueLink 還沒有的語言（葡文、印尼文）第一次開啟用英文。
   `index.html`、manifest 與 README 都以英文為主。
 - **7 種語言**：English、繁中為原文；簡中、日本語、Español、Português (Brasil)、Bahasa Indonesia 由 AI 協助翻譯，
   在 App 中標示 **Beta**。母語人士審閱完一種語言後，把 `LOCALE_INFO` 的 `status` 改成 `reviewed`，
