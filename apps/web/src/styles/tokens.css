@@ -3,13 +3,15 @@
  * (TrueLink-SaaS public/global/tl-tokens.css and docs/BRAND_CI_GUIDELINES.md).
  *
  * - Primitive values below mirror tl-tokens.css; keep them in sync with that file.
+ * - Keep Studio tokens on its own page body, not :root: the hosted build shares
+ *   TrueLink's origin and must not redefine the site's global --tl-* tokens.
  * - Light is the default theme (brand rule: not following prefers-color-scheme unless
  *   the user picks "system"); dark is [data-tl-theme='dark'], the same attribute the
  *   TrueLink site uses, so a shared-origin deployment keeps one theme choice.
  * - Buttons: primary = brand navy, gold = the single hero CTA per screen.
  * Components use only the semantic layer (--bg, --primary, ...).
  */
-:root {
+body:has(> #root) {
   /* ---- Primitives (mirrors tl-tokens.css) ---- */
   --tl-slate-50: #f8fafc;
   --tl-slate-100: #f1f5f9;
@@ -176,7 +178,7 @@
 }
 
 /* ---- Semantic: dark (official [data-tl-theme='dark'] override values) ---- */
-:root[data-tl-theme='dark'] {
+:root[data-tl-theme='dark'] body:has(> #root) {
   color-scheme: dark;
   --bg: var(--tl-slate-950);
   --surface: var(--tl-slate-900);
