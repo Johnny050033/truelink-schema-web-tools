@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { fallbackLocale, isSourceLocale, LOCALE_INFO, localize, type Locale, type LocalizedText } from 'truelink-schema-document';
+import { fallbackLocale, isSourceLocale, LOCALE_INFO, LOCALES, localize, type Locale, type LocalizedText } from 'truelink-schema-document';
 import { ensureLocale, isLocaleReady, translatedMessage } from './locales';
 import { sourceMessages, type BaseKey, type MessageKey } from './messages';
 
@@ -68,8 +68,33 @@ export function matchLocale(tag: string): Locale | undefined {
   }
 }
 
-/** The first supported browser language; English otherwise. */
-export function detectLocale(languages: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages): Locale {
+/** TrueLink's site-wide language module (`/global/tl-locale-pref.js`) on pages TrueLink serves. */
+interface TrueLinkLocale {
+  readonly pref?: () => string | null;
+  readonly suggest?: (candidates: readonly string[]) => string | null;
+}
+
+/**
+ * The languages to try, most preferred first.
+ * - Served by TrueLink (built with `VITE_TRUELINK_HOST_URL`): TrueLink's saved language, then TrueLink's
+ *   suggestion, both from `window.TLLocale`. TrueLink keeps one browser-language detector for the whole
+ *   site, so this build never reads `navigator.languages` itself (the branch below is removed at build time).
+ * - Everywhere else: the browser's languages.
+ */
+export function preferredLanguages(): readonly string[] {
+  if (import.meta.env.VITE_TRUELINK_HOST_URL) {
+    try {
+      const trueLink = (globalThis as { TLLocale?: TrueLinkLocale }).TLLocale;
+      return [trueLink?.pref?.(), trueLink?.suggest?.(LOCALES)].filter((tag): tag is string => typeof tag === 'string' && tag !== '');
+    } catch {
+      return [];
+    }
+  }
+  return typeof navigator === 'undefined' ? [] : navigator.languages;
+}
+
+/** The first supported language in `languages`; English otherwise. */
+export function detectLocale(languages: readonly string[] = preferredLanguages()): Locale {
   for (const language of languages) {
     const locale = matchLocale(language);
     if (locale) return locale;

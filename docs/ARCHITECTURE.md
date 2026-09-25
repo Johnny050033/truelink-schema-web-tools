@@ -121,6 +121,9 @@ See [VERIFIED_SCHEMA_API.md](VERIFIED_SCHEMA_API.md).
 
 Enabled only when the Studio is served by TrueLink with `VITE_TRUELINK_HOST_URL`
 pointing to a same-origin host page. The Studio never holds tokens or calls a database.
+That build also takes its first-run language from TrueLink's language setting (`window.TLLocale`)
+instead of reading the browser language itself, because TrueLink keeps a single language detector
+for the whole site.
 
 It asks the host page, over the versioned protocol, to:
 
