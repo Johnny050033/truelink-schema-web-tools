@@ -10,13 +10,13 @@ session 或協作者不必重讀對話就能接手。
 
 | 項目 | 狀態 |
 | --- | --- |
-| `main` | 已合併 [PR #2](https://github.com/Johnny050033/truelink-schema-web-tools/pull/2)（`1c99b01`）、[#7](https://github.com/Johnny050033/truelink-schema-web-tools/pull/7)（`55415f9`）、[#8](https://github.com/Johnny050033/truelink-schema-web-tools/pull/8)（`3a0d18f`）、[#9](https://github.com/Johnny050033/truelink-schema-web-tools/pull/9)（`3ba4bc0`），每次合併後 CI 都通過 |
+| `main` | 已合併 [PR #2](https://github.com/Johnny050033/truelink-schema-web-tools/pull/2)（`1c99b01`）、[#7](https://github.com/Johnny050033/truelink-schema-web-tools/pull/7)（`55415f9`）、[#8](https://github.com/Johnny050033/truelink-schema-web-tools/pull/8)（`3a0d18f`）、[#9](https://github.com/Johnny050033/truelink-schema-web-tools/pull/9)（`3ba4bc0`）、[#10](https://github.com/Johnny050033/truelink-schema-web-tools/pull/10)（`f39708b`）、[#11](https://github.com/Johnny050033/truelink-schema-web-tools/pull/11)（`fcd62c2`），每次合併後 CI 都通過 |
 | 共用核心 `truelink-schema-document` | 0.3.0（`CORE_VERSION` 與 package 版本由測試綁定） |
-| GitHub Pages | 擁有者已開啟（Source：GitHub Actions）。PR #2、#7、#8、#9 合併後的部署都成功 |
+| GitHub Pages | 擁有者已開啟（Source：GitHub Actions）。PR #2、#7、#8、#9、#10、#11 合併後的部署都成功 |
 | 線上試用版 | https://johnny050033.github.io/truelink-schema-web-tools/ |
 | 翻譯審閱 issue | [#3 日本語](https://github.com/Johnny050033/truelink-schema-web-tools/issues/3)、[#4 Español](https://github.com/Johnny050033/truelink-schema-web-tools/issues/4)、[#5 Português](https://github.com/Johnny050033/truelink-schema-web-tools/issues/5)、[#6 Bahasa Indonesia](https://github.com/Johnny050033/truelink-schema-web-tools/issues/6)（標籤：`translation`、`good first issue`、`help wanted`） |
 | 檢查 | `pnpm check` 全部通過。核心庫 67、共用核心 122、雲端協定 26、Studio 60 項測試；建置 smoke 4/4、6/6、3/3 |
-| TrueLink 託管版 | `app.truelink-group.com/studio/`：私有 SaaS repo 已完成整合實作，等待擁有者審查、實機測試與部署授權，**尚未上線**。託管版以本 repo 的 `0d1fa2a` 建置；之後修改 `apps/web`，TrueLink 端要重新建置並同步（同步腳本會拒收自己讀瀏覽器語言的建置） |
+| TrueLink 託管版 | `app.truelink-group.com/studio/`：私有 SaaS repo 的整合已於 2026-09-25 依擁有者指示合入 `dev`（未經獨立審查），等待 `dev`→`main`、真實帳號實機測試與部署授權，**尚未上線**。託管版以 [#11](https://github.com/Johnny050033/truelink-schema-web-tools/pull/11) 的 `5c0a9b0` 建置（`apps/web` 與 `main` 的 `fcd62c2` 相同）；之後修改 `apps/web`，TrueLink 端要重新建置並同步（同步腳本會拒收自己讀瀏覽器語言的建置） |
 
 ## 2. 已完成的工作
 
@@ -33,6 +33,7 @@ session 或協作者不必重讀對話就能接手。
 | #8 | `b6360f9` | 認證 Schema API（KYC）：共用核心的網域規則、雲端協定的選用方法、Studio 區塊（7 種語言）、英文與繁中說明（見第 9 節） |
 | [#9](https://github.com/Johnny050033/truelink-schema-web-tools/pull/9) | `3fb6ea7` | Studio 的提示訊息、反白按鈕 hover 與幾個不隨主題改變的顏色，改用淺色與深色主題都有定義的語意 token，讓 TrueLink 的深色模式檢查接受託管版。畫面顏色不變 |
 | [#10](https://github.com/Johnny050033/truelink-schema-web-tools/pull/10) | `0d1fa2a` | TrueLink 版 Studio 第一次開啟的語言改由 TrueLink 的語言設定（`window.TLLocale`）決定，建置時移除 Studio 自己的瀏覽器語言偵測（TrueLink 全站只保留一個）；獨立版不變 |
+| [#11](https://github.com/Johnny050033/truelink-schema-web-tools/pull/11) | `5c0a9b0` | 擁有者提交：Studio 的設計 token 從 `:root` 改掛在 Studio 自己的頁面（`body:has(> #root)`），託管版與 TrueLink 同網域時不會改到全站的 `--tl-*` token |
 
 ## 3. 重要決策與原因
 
@@ -94,7 +95,8 @@ session 或協作者不必重讀對話就能接手。
 
 | 優先 | 項目 | 說明 |
 | --- | --- | --- |
-| P0 | TrueLink SaaS 整合：審查與上線 | 擁有者開放權限後，已在**私有** SaaS repo 完成實作：host 頁面 `/studio/host.html`（含認證 Schema API 的四個方法）、草稿後端函式、私有草稿的資料庫規則、`/studio/` 的部署檔。剩下擁有者審查、用真實帳號實機測試與部署授權。安全性修正與實作細節記在私有 repo 的交接文件，**刻意不放在這個公開 repo** |
+| P0 | TrueLink SaaS 整合：審查與上線 | 擁有者開放權限後，已在**私有** SaaS repo 完成實作，2026-09-25 依擁有者指示合入 `dev`（未經獨立審查），**尚未部署**：host 頁面 `/studio/host.html`（含認證 Schema API 的四個方法）、草稿後端函式、私有草稿的資料庫規則、`/studio/` 的部署檔。剩下 `dev`→`main`、用真實帳號實機測試與部署授權。安全性修正與實作細節記在私有 repo 的交接文件，**刻意不放在這個公開 repo** |
+| P1 | 網域規則與 TrueLink 端對齊 | TrueLink 端的網域比對規則已更新；共用核心 `packages/schema-document/src/verification.ts` 要跟著對齊，讓兩邊判斷一致（待擁有者決定時程） |
 | P1 | 網頁工具改用共用核心 | `/tools/schema/` 與平台的網域判斷改用共用核心 bundle，讓規則只保留一份（SaaS 端，尚未做） |
 | P1 | 母語審閱 | 追蹤 #3–#6；審閱完成的語言改為 `reviewed` |
 | P1 | SaaS 的圖示 | TL 圖示集缺 9 個（plus、x、check、chevrons、arrows、more、menu、cloud），部署 `/studio/` 前要補齊 |
