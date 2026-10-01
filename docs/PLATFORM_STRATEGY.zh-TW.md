@@ -76,6 +76,8 @@ TrueLink 帳號（工作區）為中心；每個入口最後都回到同一個�
 
 ## 4. 一處更新、全部同步
 
+2026-10-01 實作規劃補充：[OpenAI／Dots 與跨平台發行契約](OPENAI_AND_CROSS_PLATFORM_RELEASE_PLAN.md)。沿用本節核心與發行流程，補齊 manifest、逐平台 expected／built／submitted／live 版本驗收、上架條件及 Dots 額度界線；目前只交規劃，未實作 MCP 或送審。核心版本相同不代表所有入口的實際 source／artifact 已同步。
+
 目標：**TrueLink 網頁工具（`/tools/schema/`）更新時，所有聯動的工具一起更新。** 分成三層：
 
 | 層次 | 唯一來源 | 怎麼傳到每個工具 | 使用者看到什麼 |
