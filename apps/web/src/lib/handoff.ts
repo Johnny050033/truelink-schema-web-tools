@@ -186,7 +186,7 @@ export interface HandoffWindow {
   addEventListener(type: 'message', listener: (event: MessageEvent) => void): void;
   removeEventListener(type: 'message', listener: (event: MessageEvent) => void): void;
   open?(url: string, target: string): HandoffPeer | null;
-  readonly opener?: HandoffPeer | null;
+  opener?: HandoffPeer | null;
   setTimeout(handler: () => void, ms: number): unknown;
   clearTimeout(handle: unknown): void;
 }
@@ -214,7 +214,7 @@ export function sendToCloud(
       reject(new Error('popup-blocked'));
       return;
     }
-    let nonce: string | null = null;
+    const nonces = new Set<string>();
     const finish = (error: Error | null, count = 0) => {
       win.removeEventListener('message', onMessage);
       win.clearTimeout(timer);
@@ -226,10 +226,12 @@ export function sendToCloud(
       if (event.origin !== targetOrigin || event.source !== (popup as unknown)) return;
       const message = asMessage(event.data);
       if (!message) return;
-      if (message.type === 'ready' && nonce === null) {
-        nonce = message.nonce;
-        popup!.postMessage({ channel: HANDOFF_CHANNEL, version: HANDOFF_VERSION, type: 'records', nonce, records }, targetOrigin);
-      } else if (message.type === 'ack' && message.nonce === nonce) {
+      // Each announcement gets the records (a reload or a dev double-mount announces again with a new nonce);
+      // the receiver still accepts only one message for its own current nonce.
+      if (message.type === 'ready' && nonces.size < 4 && !nonces.has(message.nonce)) {
+        nonces.add(message.nonce);
+        popup!.postMessage({ channel: HANDOFF_CHANNEL, version: HANDOFF_VERSION, type: 'records', nonce: message.nonce, records }, targetOrigin);
+      } else if (message.type === 'ack' && nonces.has(message.nonce)) {
         finish(null, typeof message.count === 'number' ? message.count : records.length);
       }
     }
@@ -284,6 +286,11 @@ export function receiveHandoff(
     }
     pendingImportSignal.set(pending);
     opener.postMessage({ channel: HANDOFF_CHANNEL, version: HANDOFF_VERSION, type: 'ack', nonce, count: checked.records.length }, event.origin);
+    try {
+      (win as { opener?: unknown }).opener = null;
+    } catch {
+      /* read-only in some environments */
+    }
     options.onReceived?.(pending);
   };
   win.addEventListener('message', onMessage);
@@ -310,14 +317,25 @@ function sameContent(a: { title: string; templateId: string; data: unknown }, b:
   return contentHash(a) === contentHash(b);
 }
 
+let importing: Promise<ImportResult[]> | null = null;
+
 /**
- * Imports the pending records into the signed-in member's cloud drafts, keeping each record's
- * id so a repeated import cannot create a second draft. Local documents are never overwritten:
- * a local document with the same id but different content keeps its edits and the incoming
- * version is added as a copy (uploaded under the copy's new id). Records that did not finish
- * stay pending so the member can retry.
+ * Imports the pending records into the signed-in member's cloud drafts. Safety rules, in order:
+ *   1. The cloud already has this exact content under the record id → "already imported" (no write).
+ *   2. A cloud draft with this id exists but differs → never save under that id (a stale sync entry
+ *      could otherwise overwrite newer cloud edits); the incoming version becomes a new copy.
+ *   3. A local document with this id differs → keep the local edits; the incoming version becomes a copy.
+ *   4. Otherwise save under the record id, which only happens when the cloud has no draft with it,
+ *      so the save is a create (expectedRevision null) and a repeated import cannot add a second draft.
+ * Copies are reused by content on retry, so retries never pile up extra copies. Unfinished records
+ * stay pending. Concurrent calls share one run.
  */
-export async function importPending(): Promise<ImportResult[]> {
+export function importPending(): Promise<ImportResult[]> {
+  if (!importing) importing = runImport().finally(() => { importing = null; });
+  return importing;
+}
+
+async function runImport(): Promise<ImportResult[]> {
   const pending = pendingImportSignal.get() ?? loadPendingImport();
   if (!pending) return [];
   const state = cloudSignal.get();
@@ -325,35 +343,41 @@ export async function importPending(): Promise<ImportResult[]> {
   const store = getStore();
   const results: ImportResult[] = [];
   const remaining: SchemaDocumentRecord[] = [];
+  const cloudDraft = (id: string): CloudDraft | undefined => {
+    const current = cloudSignal.get();
+    return current.phase === 'ready' ? current.drafts.find((draft) => draft.record.id === id) : undefined;
+  };
   for (const record of pending.records) {
+    const existing = cloudDraft(record.id);
+    if (existing && sameContent(existing.record, record)) {
+      results.push({ id: record.id, title: record.title, outcome: 'already-imported' });
+      continue;
+    }
     const local = store.getState().docs.find((doc) => doc.id === record.id);
+    const needsCopy = !!existing || (!!local && !sameContent(local, record));
     let docId = record.id;
-    let outcome: ImportOutcome = 'imported';
-    if (local && !sameContent(local, record)) {
-      const [copy] = store.importDocuments([{ templateId: record.templateId, data: record.data, title: record.title }]);
+    if (needsCopy) {
+      const reuse = store.getState().docs.find((doc) => doc.id !== record.id && sameContent(doc, record));
+      const copy = reuse ?? store.importDocuments([{ templateId: record.templateId, data: record.data, title: record.title }])[0];
       if (!copy) {
         results.push({ id: record.id, title: record.title, outcome: 'failed' });
         remaining.push(record);
         continue;
       }
       docId = copy.id;
-      outcome = 'kept-as-copy';
-    } else if (!local) {
-      if (!store.putDocument({ id: record.id, title: record.title, templateId: record.templateId, data: record.data })) {
-        results.push({ id: record.id, title: record.title, outcome: 'failed' });
-        remaining.push(record);
+      const copyDraft = cloudDraft(docId);
+      if (copyDraft && sameContent(copyDraft.record, record)) {
+        results.push({ id: docId, title: record.title, outcome: 'kept-as-copy' });
         continue;
       }
-    }
-    const existing: CloudDraft | undefined = (cloudSignal.get() as Extract<ReturnType<typeof cloudSignal.get>, { phase: 'ready' }>).drafts
-      .find((draft) => draft.record.id === docId);
-    if (existing && sameContent(existing.record, record)) {
-      results.push({ id: docId, title: record.title, outcome: 'already-imported' });
+    } else if (!local && !store.putDocument({ id: record.id, title: record.title, templateId: record.templateId, data: record.data })) {
+      results.push({ id: record.id, title: record.title, outcome: 'failed' });
+      remaining.push(record);
       continue;
     }
     try {
       await uploadDocument(docId);
-      results.push({ id: docId, title: record.title, outcome });
+      results.push({ id: docId, title: record.title, outcome: needsCopy ? 'kept-as-copy' : 'imported' });
     } catch (error) {
       if (error instanceof CloudError && error.code === 'conflict') {
         const current = error.current;
@@ -373,6 +397,28 @@ export async function importPending(): Promise<ImportResult[]> {
     pendingImportSignal.set(next);
   }
   return results;
+}
+
+/**
+ * A pending import belongs to whoever is at this browser when it arrives. It is dropped when a
+ * signed-in member signs out or the signed-in account changes, so a later user of a shared
+ * device does not inherit it. (Signing in from signed-out keeps it: that is the login round trip.)
+ */
+export function watchAccountForPendingImport(): () => void {
+  let lastAccount: string | null = null;
+  const check = () => {
+    const state = cloudSignal.get();
+    if (state.phase === 'ready') {
+      const name = state.account.displayName;
+      if (lastAccount !== null && lastAccount !== name) discardPendingImport();
+      lastAccount = name;
+    } else if (state.phase === 'signed-out') {
+      if (lastAccount !== null) discardPendingImport();
+      lastAccount = null;
+    }
+  };
+  check();
+  return cloudSignal.subscribe(check);
 }
 
 export const HANDOFF_LIMITS = { maxDocuments: LOCAL_LIMITS.maxDocuments, maxBytes: HANDOFF_MAX_BYTES, documentBytes: LIMITS.documentBytes } as const;

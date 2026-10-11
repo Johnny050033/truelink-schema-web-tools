@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CloudError, createHostClient, createLinkedTransports, createMemoryHost, serveHost, type MemoryHost } from 'truelink-schema-cloud';
 import { createRecord, type SchemaDocumentRecord } from 'truelink-schema-document';
-import { cloudSignal, configureCloud, connectCloud, refreshCloud } from '../src/lib/cloud';
+import { cloudSignal, configureCloud, connectCloud, refreshCloud, uploadDocument } from '../src/lib/cloud';
 import {
   configurePendingStorage,
   handoffOrigins,
@@ -16,6 +16,7 @@ import {
   receiveHandoff,
   sendToCloud,
   validateRecords,
+  watchAccountForPendingImport,
   writePending,
   type HandoffPeer,
   type HandoffWindow,
@@ -176,6 +177,27 @@ describe('cross-origin handoff', () => {
     await expect(sending).resolves.toBe(1);
   });
 
+  it('public side answers a re-announcement (reload or dev double mount) and accepts the ack for it', async () => {
+    const popup = peer();
+    const win = fakeWindow({ open: () => popup });
+    const records = [record('pagesDoc0001', 'A')];
+    const sending = sendToCloud(records, { win, targetUrl: `${APP}/studio/` });
+    win.dispatch({ channel: HANDOFF_CHANNEL, version: HANDOFF_VERSION, type: 'ready', nonce: 'a'.repeat(32) }, APP, popup);
+    win.dispatch({ channel: HANDOFF_CHANNEL, version: HANDOFF_VERSION, type: 'ready', nonce: 'b'.repeat(32) }, APP, popup);
+    expect(popup.sent.map((m) => m.message.nonce)).toEqual(['a'.repeat(32), 'b'.repeat(32)]);
+    win.dispatch({ channel: HANDOFF_CHANNEL, version: HANDOFF_VERSION, type: 'ack', nonce: 'b'.repeat(32), count: 1 }, APP, popup);
+    await expect(sending).resolves.toBe(1);
+  });
+
+  it('hosted side drops its opener reference after the ack', () => {
+    const opener = peer();
+    const win = fakeWindow({ opener });
+    receiveHandoff({ win, origins: [PAGES], storage, now: () => NOW });
+    const nonce = opener.sent[0]!.message.nonce;
+    win.dispatch({ channel: HANDOFF_CHANNEL, version: HANDOFF_VERSION, type: 'records', nonce, records: [record('pagesDoc0001', 'A')] }, PAGES, opener);
+    expect(win.opener).toBeNull();
+  });
+
   it('public side reports a blocked pop-up and a timeout without losing local documents', async () => {
     await expect(sendToCloud([record('pagesDoc0001', 'A')], { win: fakeWindow({ open: () => null }) })).rejects.toThrow('popup-blocked');
     const win = fakeWindow({ open: () => peer() });
@@ -233,14 +255,94 @@ describe('confirmed import', () => {
     expect(host.snapshot().drafts.map((d) => d.record.title)).toEqual(['From Pages']);
   });
 
-  it('a different cloud version is reported as a conflict, not overwritten', async () => {
+  it('a different cloud version under the same id is never overwritten; the incoming one is added as a copy', async () => {
     useHost();
     await host.saveDraft({ record: record('pagesDoc0001', 'Cloud version'), expectedRevision: null, idempotencyKey: 'seed_000000000001' });
     await connectCloud();
     pend([record('pagesDoc0001', 'From Pages')]);
     const results = await importPending();
-    expect(results[0]?.outcome).toBe('conflict');
-    expect(host.snapshot().drafts.map((d) => d.record.title)).toEqual(['Cloud version']);
+    expect(results[0]?.outcome).toBe('kept-as-copy');
+    const titles = host.snapshot().drafts.map((d) => [d.record.id, d.record.title]);
+    expect(titles).toContainEqual(['pagesDoc0001', 'Cloud version']);
+    expect(titles.some(([id, title]) => id !== 'pagesDoc0001' && title === 'From Pages')).toBe(true);
+  });
+
+  it('stale sync entry after a local delete cannot overwrite newer cloud edits (review P1)', async () => {
+    useHost();
+    await connectCloud();
+    pend([record('pagesDoc0001', 'Original')]);
+    await importPending();
+    store.putDocument({ id: 'pagesDoc0001', title: 'Edited later', templateId: 'organization', data: { name: 'Edited later' } });
+    await uploadDocument('pagesDoc0001');
+    store.deleteDocument('pagesDoc0001');
+    pend([record('pagesDoc0001', 'Original')]);
+    const results = await importPending();
+    expect(results[0]?.outcome).toBe('kept-as-copy');
+    const cloudX = host.snapshot().drafts.find((d) => d.record.id === 'pagesDoc0001');
+    expect(cloudX?.record.title).toBe('Edited later');
+  });
+
+  it('retrying after a failed copy upload reuses the same copy instead of piling up new ones', async () => {
+    useHost();
+    await host.saveDraft({ record: record('pagesDoc0001', 'Cloud version'), expectedRevision: null, idempotencyKey: 'seed_000000000001' });
+    await connectCloud();
+    const original = host.saveDraft.bind(host);
+    let failures = 2;
+    host.saveDraft = async (input) => {
+      if (failures > 0) {
+        failures -= 1;
+        throw new CloudError('unavailable', 'synthetic outage');
+      }
+      return original(input);
+    };
+    pend([record('pagesDoc0001', 'From Pages')]);
+    expect((await importPending())[0]?.outcome).toBe('failed');
+    expect((await importPending())[0]?.outcome).toBe('failed');
+    expect((await importPending())[0]?.outcome).toBe('kept-as-copy');
+    expect(store.getState().docs.filter((d) => d.title === 'From Pages')).toHaveLength(1);
+    expect(host.snapshot().drafts.filter((d) => d.record.title === 'From Pages')).toHaveLength(1);
+  });
+
+  it('re-handoff of an unchanged document after local-only edits is still "already imported"', async () => {
+    useHost();
+    await connectCloud();
+    pend([record('pagesDoc0001', 'A')]);
+    await importPending();
+    store.putDocument({ id: 'pagesDoc0001', title: 'Local only edit', templateId: 'organization', data: { name: 'Local only edit' } });
+    pend([record('pagesDoc0001', 'A')]);
+    expect((await importPending()).map((r) => r.outcome)).toEqual(['already-imported']);
+    expect(store.getState().docs).toHaveLength(1);
+    expect(host.snapshot().drafts).toHaveLength(1);
+  });
+
+  it('concurrent import calls share one run (double click)', async () => {
+    useHost();
+    await connectCloud();
+    pend([record('pagesDoc0001', 'A')]);
+    const [a, b] = await Promise.all([importPending(), importPending()]);
+    expect(a).toBe(b);
+    expect(host.snapshot().drafts).toHaveLength(1);
+  });
+
+  it('shared device: signing out or switching account drops an unconfirmed pending import; signing in from signed-out keeps it', async () => {
+    useHost(null);
+    pend([record('pagesDoc0001', 'A')]);
+    const stop = watchAccountForPendingImport();
+    await connectCloud();
+    host.signIn({ displayName: 'Synthetic Member' });
+    await refreshCloud();
+    expect(pendingImportSignal.get()?.records).toHaveLength(1);
+    host.signOut();
+    await refreshCloud();
+    expect(pendingImportSignal.get()).toBeNull();
+    expect(storage.getItem(PENDING_IMPORT_KEY)).toBeNull();
+    pend([record('pagesDoc0002', 'B')]);
+    host.signIn({ displayName: 'Member One' });
+    await refreshCloud();
+    host.signIn({ displayName: 'Member Two' });
+    await refreshCloud();
+    expect(pendingImportSignal.get()).toBeNull();
+    stop();
   });
 
   it('account isolation: the import goes only to the signed-in account; another account sees nothing', async () => {

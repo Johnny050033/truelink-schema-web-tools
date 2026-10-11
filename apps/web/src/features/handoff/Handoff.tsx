@@ -141,6 +141,7 @@ export function ImportPage() {
           ))}
         </ul>
         {pending ? <Notice tone="warning">{t('handoff.import.someLeft', { count: pending.records.length })}</Notice> : null}
+        {error ? <Notice tone="warning">{t(error)}</Notice> : null}
         <div className="hero-ctas">
           <LinkButton variant="primary" href={hrefFor({ name: 'library' })}>{t('handoff.import.toLibrary')}</LinkButton>
           <LinkButton variant="ghost" href={hrefFor({ name: 'account' })}>{t('handoff.import.toAccount')}</LinkButton>
@@ -164,6 +165,10 @@ export function ImportPage() {
     <div className="page-narrow handoff-page">
       <h1 id={titleId}>{t('handoff.import.title', { count: pending.records.length })}</h1>
       <p>{t('handoff.import.body')}</p>
+      <p className="cloud-note">
+        <Icon name="link" size={14} />
+        {t('handoff.import.source', { origin: pending.sourceOrigin })}
+      </p>
       <ul className="handoff-results" aria-labelledby={titleId}>
         {pending.records.map((record) => (
           <li key={record.id}>

@@ -510,5 +510,6 @@
   "handoff.import.emptyTitle": "沒有待匯入的文件",
   "handoff.import.emptyBody": "從公開的 Schema Studio 按「帶到 TrueLink」後，文件會出現在這裡等你確認。",
   "handoff.banner.text": "有 {count} 份從公開 Schema Studio 帶來的文件等你確認匯入。",
-  "handoff.banner.action": "查看並匯入"
+  "handoff.banner.action": "查看並匯入",
+  "handoff.import.source": "來源：{origin}。不認得這個來源就按「取消」。"
 }

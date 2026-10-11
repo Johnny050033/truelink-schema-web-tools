@@ -20,7 +20,7 @@ import { useRoute, type Route } from './lib/router';
 import { cloudUpdatesSignal } from './lib/cloud';
 import { CLOUD_HOST_PATH } from './config';
 import { PendingImportBanner } from './features/handoff/PendingImportBanner';
-import { loadPendingImport, receiveHandoff } from './lib/handoff';
+import { loadPendingImport, receiveHandoff, watchAccountForPendingImport } from './lib/handoff';
 import { installedSignal, useSignal } from './lib/signals';
 import { useAppState } from './lib/store';
 
@@ -98,7 +98,12 @@ export function App() {
   useEffect(() => {
     if (!CLOUD_HOST_PATH) return;
     loadPendingImport();
-    return receiveHandoff({ onReceived: () => { if (window.location.hash !== '#/import') window.location.hash = '#/import'; } });
+    const stopWatching = watchAccountForPendingImport();
+    const stopReceiving = receiveHandoff({ onReceived: () => { if (window.location.hash !== '#/import') window.location.hash = '#/import'; } });
+    return () => {
+      stopWatching();
+      stopReceiving();
+    };
   }, []);
   useEffect(() => {
     document.documentElement.lang = LOCALE_INFO[locale].htmlLang;

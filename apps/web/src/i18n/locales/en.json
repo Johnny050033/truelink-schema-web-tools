@@ -521,5 +521,6 @@
   "handoff.import.emptyTitle": "Nothing waiting to import",
   "handoff.import.emptyBody": "After you press “Bring to TrueLink” in the public Schema Studio, the documents appear here for you to confirm.",
   "handoff.banner.text": "{count} documents from the public Schema Studio are waiting for you to confirm the import.",
-  "handoff.banner.action": "Review and import"
+  "handoff.banner.action": "Review and import",
+  "handoff.import.source": "From: {origin}. If you do not recognise it, press Cancel."
 }
