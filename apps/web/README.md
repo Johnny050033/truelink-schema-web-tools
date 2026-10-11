@@ -73,6 +73,8 @@ TrueLink 全站只保留一個瀏覽器語言偵測，所以這個版本的建�
 | `VITE_TRUELINK_SIGNUP_URL_EN` | 英文版註冊頁 | `https://truelink-group.com/en/` |
 | `VITE_TRUELINK_APP_URL` | 「開啟 TrueLink 網頁工具」 | 官網首頁 |
 | `VITE_TRUELINK_HOST_URL` | TrueLink host 頁面的**同網域路徑**（例如 `/studio/host.html`），設定後啟用雲端草稿，第一次開啟的語言改由 TrueLink 的語言設定決定 | 未設定＝純本機模式 |
+| `VITE_TRUELINK_CLOUD_STUDIO_URL` | 公開版「帶到 TrueLink」要開啟的 TrueLink Studio（HTTPS） | `https://app.truelink-group.com/studio/` |
+| `VITE_TRUELINK_HANDOFF_ORIGINS` | TrueLink 版允許交接文件的來源（逗號分隔的精確 HTTPS origin） | `https://johnny050033.github.io` |
 
 範例：`VITE_TRUELINK_SIGNUP_URL=https://truelink-group.com/<註冊頁> pnpm app:build`
 
@@ -107,6 +109,18 @@ TrueLink 全站只保留一個瀏覽器語言偵測，所以這個版本的建�
 - 發布只接受已同步的組織、地方商家或人物（可加一份常見問答），並固定在使用者看過的版本。
 - TrueLink 升級共用核心後，舊版分頁會被要求重新整理才能同步。
 - 同步紀錄存在 `truelink-schema-studio:v1:sync`（每份文件最後確認的雲端版本號與內容雜湊）。
+
+## 從公開版帶到 TrueLink（handoff）
+
+- 公開版（GitHub Pages，純本機）的帳號頁可選文件按「帶到 TrueLink」：開新分頁到 TrueLink Studio，
+  雙方以 `postMessage` 交換，只接受**開啟它的那個視窗**、精確 origin 與單次 nonce；文件**不放進網址**（query 或 hash）。
+- TrueLink 版收到後只存成「待匯入」（`truelink-schema-studio:v1:pending-import`，24 小時後失效），
+  登入中斷、取消或關分頁都不會上傳。會員登入並按「匯入」後才逐份存成雲端草稿。
+- 沿用原文件 id，重複匯入同一份不會多建草稿；本機已有同 id 但內容不同時保留原修改、另存副本；
+  雲端已有同 id 但不同內容時一律另存副本（不以舊同步紀錄覆寫雲端）；未完成的留在待匯入可重試，重試沿用同一份副本。
+- 待匯入屬於當下這個瀏覽器：在**開著 Studio 的分頁中**，已登入的會員登出或換帳號時會清掉。若沒登出就離開，下一位在 24 小時內登入的人仍會看到，只能靠匯入頁顯示的目標帳號、來源 origin 與必須手動確認來防範（帳號只有 displayName，無法更精確辨識；要改需動 host 協定）。
+- 部署前提：TrueLink 的 `/studio/` 不可設 `Cross-Origin-Opener-Policy: same-origin`（會切斷 `window.opener`，交接直接失效）。
+  預設允許的 `https://johnny050033.github.io` 是該帳號所有 GitHub Pages 共用的 origin；任何一個都能送出待匯入，但仍要會員自己確認。
 
 ## 本機儲存與資料安全
 

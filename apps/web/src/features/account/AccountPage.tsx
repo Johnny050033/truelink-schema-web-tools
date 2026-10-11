@@ -7,6 +7,7 @@ import { cloudSignal } from '../../lib/cloud';
 import { useSignal } from '../../lib/signals';
 import { CloudPanel, useCloudStatusLines } from './CloudPanel';
 import { VerifiedApiPanel } from './VerifiedApiPanel';
+import { SendToCloudPanel } from '../handoff/Handoff';
 
 /** True when the Studio is served with a TrueLink host bridge (cloud drafts available). */
 const CLOUD_ENABLED = CLOUD_HOST_PATH !== undefined;
@@ -137,7 +138,7 @@ export function AccountPage() {
         </div>
       </section>
 
-      {CLOUD_ENABLED ? <CloudPanel /> : null}
+      {CLOUD_ENABLED ? <CloudPanel /> : <SendToCloudPanel />}
 
       <VerifiedApiPanel />
 

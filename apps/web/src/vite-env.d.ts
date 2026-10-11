@@ -14,4 +14,8 @@ interface ImportMetaEnv {
    */
   readonly VITE_TRUELINK_HOST_URL?: string;
   readonly VITE_TRUELINK_KYC_URL?: string;
+  /** Public build: the TrueLink-hosted Studio that receives "continue in TrueLink" handoffs (HTTPS only). */
+  readonly VITE_TRUELINK_CLOUD_STUDIO_URL?: string;
+  /** Hosted build: comma-separated exact HTTPS origins allowed to hand documents over (default: the GitHub Pages origin). */
+  readonly VITE_TRUELINK_HANDOFF_ORIGINS?: string;
 }

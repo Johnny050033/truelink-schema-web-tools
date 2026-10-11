@@ -9,9 +9,10 @@ export type Route =
   | { readonly name: 'transfer' }
   | { readonly name: 'account' }
   | { readonly name: 'settings' }
+  | { readonly name: 'import' }
   | { readonly name: 'not-found' };
 
-const SIMPLE = new Set(['templates', 'library', 'brand', 'transfer', 'account', 'settings']);
+const SIMPLE = new Set(['templates', 'library', 'brand', 'transfer', 'account', 'settings', 'import']);
 
 /** Hash routing keeps deep links working on any static host and inside an installed app. */
 export function parseHash(hash: string): Route {
