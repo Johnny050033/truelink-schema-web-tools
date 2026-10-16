@@ -1,0 +1,151 @@
+{
+  "format": "truelink.ai-site-kit.mock-scenarios",
+  "version": 1,
+  "descriptiveOnly": true,
+  "syntheticOnly": true,
+  "execution": "None. This is a static catalog, not a runnable suite, wire payload, HTTP server or backend fallback.",
+  "recordFixture": "examples/synthetic-organization.json",
+  "reference": {
+    "commit": "da9ffb5200523a62939d365cf95c43315641ff2a",
+    "protocol": "../../packages/cloud-client/src/protocol.ts",
+    "memoryHost": "../../packages/cloud-client/src/memory-host.ts"
+  },
+  "notation": "setup/action/expected describe a discussion or future local check. They are not HostImplementation arguments. Adapt using the existing typed API and fixture; this file supplies no runner.",
+  "scope": "In-memory draft behavior in one simulated session. No real accounts, verification, credential issuance, uploads or live publishing.",
+  "scenarios": [
+    {
+      "id": "signed-out-list",
+      "bridgeMethod": "drafts.list",
+      "memoryMethod": "listDrafts",
+      "setup": {
+        "signedIn": false
+      },
+      "action": {
+        "description": "Attempt to list drafts in the signed-out mock."
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "signed-out"
+      }
+    },
+    {
+      "id": "empty-list",
+      "bridgeMethod": "drafts.list",
+      "memoryMethod": "listDrafts",
+      "setup": {
+        "signedIn": true,
+        "displayName": "Synthetic demo",
+        "draftCount": 0
+      },
+      "action": {
+        "description": "List drafts in this empty simulated session."
+      },
+      "expected": {
+        "outcome": "success",
+        "drafts": []
+      }
+    },
+    {
+      "id": "create-private-draft",
+      "bridgeMethod": "drafts.save",
+      "memoryMethod": "saveDraft",
+      "setup": {
+        "signedIn": true,
+        "draftCount": 0,
+        "published": null
+      },
+      "action": {
+        "description": "Save the record fixture for the first time in memory.",
+        "expectedRevision": null,
+        "idempotencyKey": "synthetic_create_0001"
+      },
+      "expected": {
+        "outcome": "success",
+        "revision": 1,
+        "savedAt": "Supplied by the mock clock, not the client record timestamp.",
+        "published": null
+      }
+    },
+    {
+      "id": "stale-revision",
+      "bridgeMethod": "drafts.save",
+      "memoryMethod": "saveDraft",
+      "setup": {
+        "signedIn": true,
+        "currentFixtureRevision": 2
+      },
+      "action": {
+        "description": "Try to save the fixture using an older reviewed revision.",
+        "expectedRevision": 1,
+        "idempotencyKey": "synthetic_stale_0001"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "conflict",
+        "currentFixtureRevision": 2,
+        "localWork": "Preserve for a deliberate resolution; do not overwrite silently."
+      }
+    },
+    {
+      "id": "identical-retry",
+      "bridgeMethod": "drafts.save",
+      "memoryMethod": "saveDraft",
+      "setup": {
+        "signedIn": true,
+        "draftCount": 0
+      },
+      "action": {
+        "description": "Repeat the identical create request with the identical record and key.",
+        "expectedRevision": null,
+        "idempotencyKey": "synthetic_retry_0001",
+        "requestCount": 2
+      },
+      "expected": {
+        "outcome": "success",
+        "revision": 1,
+        "draftCount": 1,
+        "result": "Both calls return the first saved result."
+      }
+    },
+    {
+      "id": "changed-retry",
+      "bridgeMethod": "drafts.save",
+      "memoryMethod": "saveDraft",
+      "setup": {
+        "signedIn": true,
+        "firstRequestSaved": true
+      },
+      "action": {
+        "description": "Reuse the first save's key after changing the record title.",
+        "idempotencyKey": "synthetic_changed_0001",
+        "sameKeyAsFirstRequest": true
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "invalid",
+        "firstSavedRecordUnchanged": true
+      }
+    },
+    {
+      "id": "quota-reached",
+      "bridgeMethod": "drafts.save",
+      "memoryMethod": "saveDraft",
+      "setup": {
+        "signedIn": true,
+        "maxDrafts": 1,
+        "draftCount": 1
+      },
+      "action": {
+        "description": "Try to create a second distinct synthetic record.",
+        "newRecordId": "synthetic_org_02",
+        "expectedRevision": null,
+        "idempotencyKey": "synthetic_quota_0001"
+      },
+      "expected": {
+        "outcome": "error",
+        "code": "quota",
+        "draftCount": 1
+      }
+    }
+  ]
+}

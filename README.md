@@ -14,6 +14,7 @@
   <a href="https://johnny050033.github.io/truelink-schema-web-tools/"><b>Try it in your browser →</b></a>
   &nbsp;·&nbsp; <a href="#features">Features</a>
   &nbsp;·&nbsp; <a href="#use-the-core-in-your-project">Developers</a>
+  &nbsp;·&nbsp; <a href="docs/ai-site-kit/README.md">AI site kit</a>
   &nbsp;·&nbsp; <a href="CONTRIBUTING.md">Contribute</a>
   &nbsp;·&nbsp; <a href="README.zh-TW.md">繁體中文</a>
 </p>
@@ -138,14 +139,17 @@ describeDocument(template, data, 'en').sentences;         // ["Morning Light Caf
 toJsonLdScript(buildOutput(data, template));              // <script type="application/ld+json">…</script>
 ```
 
-Tagged [releases](https://github.com/Johnny050033/truelink-schema-web-tools/releases) ship:
+The tagged-release workflow is configured to build:
 
 - ESM, CommonJS and browser-global builds (`window.TrueLinkSchema`)
 - translation catalogs
 - conformance cases
 - npm tarballs
 
-The packages aren't on the npm registry yet.
+This describes the release workflow, not an available download. The GitHub
+[Releases list](https://github.com/Johnny050033/truelink-schema-web-tools/releases) was empty
+when checked on 2026-10-16. Recheck it for a published version and its actual artifacts;
+the packages aren't on the npm registry yet.
 
 | Workspace | What it is |
 | --- | --- |
@@ -155,6 +159,18 @@ The packages aren't on the npm registry yet.
 | [`/` root](docs/LIBRARY.md) | Strict flat-object validation and sandboxed static embeds |
 
 How the pieces fit together: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## AI-readable site resource kit
+
+Give your site-building assistant the [resource kit](docs/ai-site-kit/README.md): a
+[machine-readable index](docs/ai-site-kit/resources.json), brand interview, review checklist,
+existing document/template contracts and synthetic examples. Start with your own verified
+facts, then use the existing core to prepare JSON-LD for your website.
+
+The kit is documentation and static fixtures. It adds no site generator, HTTP endpoint,
+authentication flow or hosted service. Its mock scenarios describe the existing in-memory
+reference host; they do not connect to a backend. Use your own brand assets and keep customer
+answers private until their owner approves what will appear on the website.
 
 ## Develop
 

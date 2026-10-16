@@ -13,6 +13,7 @@
   <a href="https://johnny050033.github.io/truelink-schema-web-tools/"><b>立即在瀏覽器試用 →</b></a>
   &nbsp;·&nbsp; <a href="#功能">功能</a>
   &nbsp;·&nbsp; <a href="#在你的專案使用核心套件">開發者</a>
+  &nbsp;·&nbsp; <a href="docs/ai-site-kit/README.md">AI 建站資源包</a>
   &nbsp;·&nbsp; <a href="CONTRIBUTING.md">參與貢獻</a>
   &nbsp;·&nbsp; <a href="README.md">English</a>
 </p>
@@ -97,6 +98,20 @@ Studio 背後的引擎是獨立、零相依的 `truelink-schema-document`。True
 所以各工具的檢查與輸出一致。用法請見 [README.md](README.md#use-the-core-in-your-project)；
 架構說明請見 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)（英文），
 多平台策略請見 [docs/PLATFORM_STRATEGY.zh-TW.md](docs/PLATFORM_STRATEGY.zh-TW.md)。
+
+## AI 可讀建站資源包
+
+將[資源包導覽](docs/ai-site-kit/README.md)與[機器可讀索引](docs/ai-site-kit/resources.json)
+交給協助建站的 AI：先用品牌訪談整理你確認過的事實，再沿用現有文件契約、11 種 Schema 模板、
+synthetic 範例與驗收清單。導覽以英文為主，訪談題與快速開始另有繁中。
+
+這是文件與靜態範例，沒有新增建站引擎、HTTP 端點、登入或代管服務；mock 只描述既有記憶體參考實作，
+不會連到後端。使用自己的品牌素材；填好的訪談先留在私有工作空間，由資料擁有人確認哪些內容可放上網站。
+程式碼的 MIT 授權不包含 TrueLink 的名稱、標誌與圖示，見 [TRADEMARKS.md](TRADEMARKS.md)。
+
+原始碼、已發行下載與線上服務分開看：2026-10-16 查詢時
+[GitHub Releases](https://github.com/Johnny050033/truelink-schema-web-tools/releases) 清單為空；
+這份資源包不代表已有官方安裝包或經驗收的雲端服務，也不保證排名、搜尋結果或 AI 引用。
 
 ## 開發
 
