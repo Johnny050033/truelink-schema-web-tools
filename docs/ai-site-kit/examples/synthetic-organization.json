@@ -1,0 +1,16 @@
+{
+  "format": "truelink.schema-document",
+  "version": 1,
+  "id": "synthetic_org_01",
+  "title": "Synthetic organization example",
+  "templateId": "organization",
+  "data": {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://example.com/#organization",
+    "name": "Example Learning Studio",
+    "url": "https://example.com/",
+    "description": "An invented organization used only to demonstrate a portable editing record. This is not a real business."
+  },
+  "updatedAt": 0
+}

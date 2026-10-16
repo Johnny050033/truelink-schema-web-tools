@@ -1,0 +1,183 @@
+{
+  "format": "truelink.ai-site-kit.resources",
+  "version": 1,
+  "title": "AI-readable site resource kit",
+  "primaryLanguage": "en",
+  "additionalLanguageContent": "zh-TW getting-started summary and interview prompts",
+  "pathBase": "docs/ai-site-kit/",
+  "purpose": "Discover existing public libraries, contracts, templates and documentation for a customer-owned website.",
+  "formatBoundary": "A resource index, not JSON Schema, OpenAPI, a customer record, an executable plan or an authorization grant.",
+  "packStatus": "Source documentation and static fixtures; no shipped release or runtime acceptance asserted.",
+  "existingSourceReference": {
+    "repository": "https://github.com/Johnny050033/truelink-schema-web-tools",
+    "commit": "da9ffb5200523a62939d365cf95c43315641ff2a",
+    "scope": "Existing library/protocol/template references only. New kit files are not asserted to exist at this commit; inspect their own Git history.",
+    "documentPackage": {
+      "name": "truelink-schema-document",
+      "sourceVersion": "0.3.0"
+    },
+    "bridgePackage": {
+      "name": "truelink-schema-cloud",
+      "sourceVersion": "0.1.0"
+    }
+  },
+  "releaseObservation": {
+    "date": "2026-10-16",
+    "publishedGitHubReleases": 0,
+    "source": "https://api.github.com/repos/Johnny050033/truelink-schema-web-tools/releases?per_page=10",
+    "limitation": "Dated observation, not a live release index. Workflow definitions and source versions do not establish shipped artifacts.",
+    "currentReleases": "https://github.com/Johnny050033/truelink-schema-web-tools/releases"
+  },
+  "defaultUse": {
+    "mode": "local documentation and synthetic data",
+    "requiresTrueLinkAccount": false,
+    "requiresServiceCalls": false,
+    "addsHttpEndpoint": false,
+    "addsRuntime": false,
+    "autoUploads": false,
+    "autoPublishes": false
+  },
+  "kitFiles": [
+    {
+      "id": "overview",
+      "path": "README.md",
+      "kind": "guide"
+    },
+    {
+      "id": "brand-interview",
+      "path": "brand-interview.md",
+      "kind": "empty-interview-guide",
+      "handling": "Keep completed answers private; approve the public subset before use."
+    },
+    {
+      "id": "acceptance",
+      "path": "acceptance.md",
+      "kind": "review-checklist",
+      "handling": "Record evidence and not-checked states; not a certificate."
+    },
+    {
+      "id": "contracts",
+      "path": "contracts.md",
+      "kind": "existing-contract-guide"
+    },
+    {
+      "id": "synthetic-record",
+      "path": "examples/synthetic-organization.json",
+      "kind": "synthetic-SchemaDocumentRecord",
+      "handling": "Demonstration only; do not publish it as real customer content."
+    },
+    {
+      "id": "mock-scenarios",
+      "path": "mock-scenarios.json",
+      "kind": "static-scenario-descriptions",
+      "handling": "Not executable requests, an HTTP mock or a service fallback."
+    }
+  ],
+  "existingResources": [
+    {
+      "id": "document-core",
+      "path": "../../packages/schema-document/README.md",
+      "kind": "library-reference"
+    },
+    {
+      "id": "record-contract",
+      "path": "../../packages/schema-document/src/contract.ts",
+      "kind": "typescript-contract",
+      "consumer": "parseRecord",
+      "format": "truelink.schema-document",
+      "version": 1
+    },
+    {
+      "id": "templates",
+      "path": "../../packages/schema-document/src/templates/index.ts",
+      "kind": "authoring-template-index",
+      "limitation": "Schema data templates, not complete website page layouts."
+    },
+    {
+      "id": "limits",
+      "path": "../../packages/schema-document/src/limits.ts",
+      "kind": "parser-limits"
+    },
+    {
+      "id": "brand-wizard",
+      "path": "../../apps/web/src/features/brand/BrandPage.tsx",
+      "kind": "existing-public-field-groups"
+    },
+    {
+      "id": "host-protocol-guide",
+      "path": "../../packages/cloud-client/README.md",
+      "kind": "optional-same-origin-bridge-reference"
+    },
+    {
+      "id": "host-protocol",
+      "path": "../../packages/cloud-client/src/protocol.ts",
+      "kind": "typescript-protocol",
+      "channel": "truelink.host",
+      "version": 1
+    },
+    {
+      "id": "memory-host",
+      "path": "../../packages/cloud-client/src/memory-host.ts",
+      "kind": "in-memory-reference",
+      "limitation": "Synthetic single-session reference, not production authentication or account-isolation evidence."
+    },
+    {
+      "id": "conformance-examples",
+      "path": "../../packages/schema-document/conformance/legacy-store.json",
+      "kind": "existing-synthetic-fixtures"
+    },
+    {
+      "id": "security",
+      "path": "../../SECURITY.md",
+      "kind": "security-boundary"
+    },
+    {
+      "id": "contributing",
+      "path": "../../CONTRIBUTING.md",
+      "kind": "contribution-policy"
+    }
+  ],
+  "templateIds": [
+    "organization",
+    "local-business",
+    "person",
+    "website",
+    "service",
+    "product",
+    "article",
+    "faq",
+    "event",
+    "breadcrumb",
+    "thing"
+  ],
+  "portableRecordFields": [
+    "format",
+    "version",
+    "id",
+    "title",
+    "templateId",
+    "data",
+    "updatedAt"
+  ],
+  "httpServices": {
+    "configuredByKit": false,
+    "runtimeVerifiedByKit": false,
+    "furtherReading": "../VERIFIED_SCHEMA_API.md",
+    "boundary": "Existing platform documentation is not callable endpoint configuration or proof of availability. No credentials, HTTP adapter or auth flow is supplied."
+  },
+  "sharing": {
+    "license": "MIT",
+    "licensePath": "../../LICENSE",
+    "trademarkPolicy": "../../TRADEMARKS.md",
+    "brandBoundary": "MIT does not license TrueLink names, shield or icons for customer branding.",
+    "publicExamples": "Synthetic names and reserved example domains only.",
+    "excludedContent": [
+      "credentials and tokens",
+      "completed customer interviews",
+      "identity documents",
+      "private drafts",
+      "private analytics and unpublished material"
+    ],
+    "claims": "Advisory only; no rankings, rich results, traffic or AI citation guarantees."
+  }
+}
