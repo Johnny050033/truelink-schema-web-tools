@@ -11,12 +11,16 @@ const EditorPage = lazy(() => import('./features/editor/EditorPage').then((modul
 const BrandPage = lazy(() => import('./features/brand/BrandPage').then((module) => ({ default: module.BrandPage })));
 const TransferPage = lazy(() => import('./features/transfer/TransferPage').then((module) => ({ default: module.TransferPage })));
 const AccountPage = lazy(() => import('./features/account/AccountPage').then((module) => ({ default: module.AccountPage })));
+const ImportPage = lazy(() => import('./features/handoff/Handoff').then((module) => ({ default: module.ImportPage })));
 const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 import { LOCALE_INFO } from 'truelink-schema-document';
 import { I18nProvider, translate, useI18n, useReadyLocale } from './i18n';
 import type { ThemePreference } from './lib/persistence';
 import { useRoute, type Route } from './lib/router';
 import { cloudUpdatesSignal } from './lib/cloud';
+import { CLOUD_HOST_PATH } from './config';
+import { PendingImportBanner } from './features/handoff/PendingImportBanner';
+import { loadPendingImport, receiveHandoff, watchAccountForPendingImport } from './lib/handoff';
 import { installedSignal, useSignal } from './lib/signals';
 import { useAppState } from './lib/store';
 
@@ -56,6 +60,8 @@ function Page({ route }: { route: Route }) {
       return <AccountPage />;
     case 'settings':
       return <SettingsPage />;
+    case 'import':
+      return CLOUD_HOST_PATH ? <ImportPage /> : <HomePage />;
     default:
       return <HomePage />;
   }
@@ -87,6 +93,18 @@ export function App() {
   const theme = useAppState((state) => state.prefs.theme);
   const route = useRoute();
   useDocumentTheme(theme);
+  // Hosted build: accept documents handed over by the public Studio that opened this window,
+  // and pick up a pending import that survived a login round trip.
+  useEffect(() => {
+    if (!CLOUD_HOST_PATH) return;
+    loadPendingImport();
+    const stopWatching = watchAccountForPendingImport();
+    const stopReceiving = receiveHandoff({ onReceived: () => { if (window.location.hash !== '#/import') window.location.hash = '#/import'; } });
+    return () => {
+      stopWatching();
+      stopReceiving();
+    };
+  }, []);
   useEffect(() => {
     document.documentElement.lang = LOCALE_INFO[locale].htmlLang;
     document.title = `${translate(locale, 'app.name')} · TrueLink — ${translate(locale, 'app.tagline')}`;
@@ -99,6 +117,7 @@ export function App() {
           <InstalledToast />
           <CloudUpdatesToast />
           <Shell route={route}>
+            {CLOUD_HOST_PATH ? <PendingImportBanner onImportRoute={route.name === 'import'} /> : null}
             <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
               <Page route={route} />
             </Suspense>

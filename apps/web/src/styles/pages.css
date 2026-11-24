@@ -2923,3 +2923,72 @@ button.gap-chip:hover {
     gap: 4px;
   }
 }
+
+/* "Continue in TrueLink" handoff: send panel (public build), import page and banner (hosted build). */
+.handoff-card {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.handoff-card h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.handoff-list {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.handoff-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+
+.handoff-item input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.handoff-page {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.handoff-results {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.handoff-results li {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow-wrap: anywhere;
+}
+
+.handoff-results li span {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+
+.handoff-banner {
+  margin: 0 auto var(--space-4);
+  max-width: 1120px;
+}

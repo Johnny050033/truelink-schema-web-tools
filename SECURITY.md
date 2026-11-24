@@ -45,6 +45,14 @@ sanitizer or a replacement for authorization, database rules, CSP, or tenant iso
 - The service worker answers only for the Studio's own precached files and document;
   other same-origin pages (such as a TrueLink host page) are never intercepted.
 
+## Handoff from the public Studio
+
+- The public build hands documents to the TrueLink-hosted Studio with `postMessage` only: the
+  receiver accepts one message from the window that opened it, from an exact allowed HTTPS origin,
+  carrying the nonce it announced. Documents are never placed in a URL.
+- Received documents are validated with the record parser and stored as a pending import; nothing is
+  uploaded until the signed-in member confirms, and the import never overwrites local edits.
+
 ## Host bridge (`packages/cloud-client`)
 
 - Cloud drafts are only enabled for a same-origin host path (`VITE_TRUELINK_HOST_URL`
